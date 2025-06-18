@@ -1,0 +1,15 @@
+# Archivo .clangd - La configuración correcta y final.
+
+CompileFlags:
+  Add:
+    # Las rutas de inclusión correctas, que apuntan a donde están las
+    # cabeceras de godot-cpp.
+    - -I/Users/lenin.chavez/LonelySpace/godot-cpp/include
+    - -I/Users/lenin.chavez/LonelySpace/godot-cpp/gen/include
+    - -I/Users/lenin.chavez/LonelySpace/godot-cpp/gdextension
+
+    # El resto de la configuración que ya teníamos.
+    - -std=c++17
+    - -DDEBUG_ENABLED
+    - -DAPPLE_ENABLED
+    - -Wall
