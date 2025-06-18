@@ -19,7 +19,7 @@ El objetivo principal es crear un sistema de terreno infinito y eficiente que se
 -   **Lenguajes:**
     -   **C++:** Para la GDExtension de alto rendimiento (Marching Cubes).
     -   **GDScript:** Para la lógica de alto nivel, gestión de escenas y del jugador.
-    -   **GLSL:** Shaders personalizados (si aplica).
+    -   **GLSL:** Shaders personalizados.
     -   **Python:** Para el sistema de compilación SCons.
 -   **Sistema de Compilación:** [SCons](https://scons.org/)
 
@@ -60,11 +60,24 @@ Si olvidaste usar `--recurse-submodules`, puedes inicializarlo después de clona
 git submodule update --init --recursive
 ```
 
-### 2. Compilar la GDExtension
+### 2. Compilar `godot-cpp` (Generar Bindings)
 
-El corazón del proyecto reside en la GDExtension de C++. Debes compilarla para que Godot pueda usarla.
+Antes de poder compilar nuestro proyecto, debemos compilar la librería `godot-cpp` que acabamos de descargar. Esto genera los "bindings" que nuestro código necesita para comunicarse con Godot.
 
-Abre una terminal o línea de comandos en la **raíz del proyecto** (la carpeta `LonelySpace` que acabas de clonar) y ejecuta el siguiente comando:
+Navega dentro de la carpeta `godot-cpp` y ejecuta `scons`.
+
+```bash
+cd godot-cpp
+scons platform=windows  # En Windows
+# scons platform=linux    # En Linux
+# scons platform=macos    # En macOS
+cd .. 
+```
+> **Nota:** Reemplaza `platform=windows` por el que corresponda a tu sistema operativo. Después de que termine, regresa a la carpeta raíz del proyecto con `cd ..`.
+
+### 3. Compilar la GDExtension del Proyecto
+
+Ahora que `godot-cpp` está compilado, puedes construir la GDExtension principal del proyecto. Asegúrate de estar en la **raíz del proyecto** (`LonelySpace`) y ejecuta:
 
 ```bash
 scons
@@ -72,9 +85,7 @@ scons
 
 Este comando buscará el archivo `SConstruct`, compilará el código C++ de la carpeta `src/`, y colocará la librería compilada (`.dll`, `.so`, o `.dylib`) en la subcarpeta `lonely-space/bin/`, donde Godot espera encontrarla.
 
-> **Nota:** La primera compilación puede tardar unos minutos. Las compilaciones posteriores serán mucho más rápidas.
-
-### 3. Abrir en Godot y Ejecutar
+### 4. Abrir en Godot y Ejecutar
 
 ¡Ya casi está!
 
@@ -95,4 +106,3 @@ Este proyecto está bajo la Licencia MIT. Consulta el archivo `LICENSE` para má
 
 ---
 **¡Disfruta explorando el espacio procedural!** 🚀
-
