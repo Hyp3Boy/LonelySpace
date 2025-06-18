@@ -365,3 +365,4 @@ $RECYCLE.BIN/
 *.msm
 *.msp
 *.lnk
+.clangd
