@@ -366,3 +366,4 @@ $RECYCLE.BIN/
 *.msp
 *.lnk
 .clangd
+.sconsign.dblite
