@@ -7,7 +7,6 @@
 
 using namespace godot;
 
-// Definición de las tablas estáticas (copia y pega tus tablas aquí)
 const int MarchingCubesChunk::edge_table[256] = {
     0x0,   0x109, 0x203, 0x30a, 0x406, 0x50f, 0x605, 0x70c, 0x80c, 0x905, 0xa0f,
     0xb06, 0xc0a, 0xd03, 0xe09, 0xf00, 0x190, 0x99,  0x393, 0x29a, 0x596, 0x49f,
@@ -291,7 +290,6 @@ const int MarchingCubesChunk::tri_table[256][16] = {
     {0, 3, 8, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1},
     {-1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1}};
 
-// Constantes
 const Vector3i MarchingCubesChunk::CUBE_VERTICES[8] = {
     Vector3i(0, 0, 0), Vector3i(1, 0, 0), Vector3i(1, 1, 0), Vector3i(0, 1, 0),
     Vector3i(0, 0, 1), Vector3i(1, 0, 1), Vector3i(1, 1, 1), Vector3i(0, 1, 1)};
@@ -299,7 +297,6 @@ const int MarchingCubesChunk::CUBE_EDGES[12][2] = {
     {0, 1}, {1, 2}, {2, 3}, {3, 0}, {4, 5}, {5, 6},
     {6, 7}, {7, 4}, {0, 4}, {1, 5}, {2, 6}, {3, 7}};
 
-// --- BINDING A GODOT (sin cambios) ---
 void MarchingCubesChunk::_bind_methods() {
   ClassDB::bind_method(D_METHOD("generate_mesh"),
                        &MarchingCubesChunk::generate_mesh);
@@ -321,67 +318,110 @@ void MarchingCubesChunk::_bind_methods() {
                        &MarchingCubesChunk::get_isolevel);
   ADD_PROPERTY(PropertyInfo(Variant::FLOAT, "isolevel"), "set_isolevel",
                "get_isolevel");
-  ClassDB::bind_method(D_METHOD("set_noise_scale", "p_scale"),
-                       &MarchingCubesChunk::set_noise_scale);
-  ClassDB::bind_method(D_METHOD("get_noise_scale"),
-                       &MarchingCubesChunk::get_noise_scale);
-  ADD_PROPERTY(PropertyInfo(Variant::FLOAT, "noise_scale"), "set_noise_scale",
-               "get_noise_scale");
-  ClassDB::bind_method(D_METHOD("set_noise_height_influence", "p_influence"),
-                       &MarchingCubesChunk::set_noise_height_influence);
-  ClassDB::bind_method(D_METHOD("get_noise_height_influence"),
-                       &MarchingCubesChunk::get_noise_height_influence);
-  ADD_PROPERTY(PropertyInfo(Variant::FLOAT, "noise_height_influence"),
-               "set_noise_height_influence", "get_noise_height_influence");
-  ClassDB::bind_method(D_METHOD("set_noise", "p_noise"),
-                       &MarchingCubesChunk::set_noise);
-  ClassDB::bind_method(D_METHOD("get_noise"), &MarchingCubesChunk::get_noise);
-  ADD_PROPERTY(PropertyInfo(Variant::OBJECT, "noise",
+  ClassDB::bind_method(D_METHOD("set_noise_base_terrain", "p_noise"),
+                       &MarchingCubesChunk::set_noise_base_terrain);
+  ClassDB::bind_method(D_METHOD("get_noise_base_terrain"),
+                       &MarchingCubesChunk::get_noise_base_terrain);
+  ADD_PROPERTY(PropertyInfo(Variant::OBJECT, "noise_base_terrain",
                             PROPERTY_HINT_RESOURCE_TYPE, "FastNoiseLite"),
-               "set_noise", "get_noise");
+               "set_noise_base_terrain", "get_noise_base_terrain");
+
+  ClassDB::bind_method(D_METHOD("set_base_terrain_scale", "p_scale"),
+                       &MarchingCubesChunk::set_base_terrain_scale);
+  ClassDB::bind_method(D_METHOD("get_base_terrain_scale"),
+                       &MarchingCubesChunk::get_base_terrain_scale);
+  ADD_PROPERTY(PropertyInfo(Variant::FLOAT, "base_terrain_scale"),
+               "set_base_terrain_scale", "get_base_terrain_scale");
+
+  ClassDB::bind_method(
+      D_METHOD("set_base_terrain_height_influence", "p_influence"),
+      &MarchingCubesChunk::set_base_terrain_height_influence);
+  ClassDB::bind_method(D_METHOD("get_base_terrain_height_influence"),
+                       &MarchingCubesChunk::get_base_terrain_height_influence);
+  ADD_PROPERTY(PropertyInfo(Variant::FLOAT, "base_terrain_height_influence"),
+               "set_base_terrain_height_influence",
+               "get_base_terrain_height_influence");
+
+  // --- AGREGADO: Propiedades para el ruido de Detalle ---
+  ClassDB::bind_method(D_METHOD("set_noise_detail", "p_noise"),
+                       &MarchingCubesChunk::set_noise_detail);
+  ClassDB::bind_method(D_METHOD("get_noise_detail"),
+                       &MarchingCubesChunk::get_noise_detail);
+  ADD_PROPERTY(PropertyInfo(Variant::OBJECT, "noise_detail",
+                            PROPERTY_HINT_RESOURCE_TYPE, "FastNoiseLite"),
+               "set_noise_detail", "get_noise_detail");
+
+  ClassDB::bind_method(D_METHOD("set_detail_scale", "p_scale"),
+                       &MarchingCubesChunk::set_detail_scale);
+  ClassDB::bind_method(D_METHOD("get_detail_scale"),
+                       &MarchingCubesChunk::get_detail_scale);
+  ADD_PROPERTY(PropertyInfo(Variant::FLOAT, "detail_scale"), "set_detail_scale",
+               "get_detail_scale");
+
+  ClassDB::bind_method(D_METHOD("set_detail_influence", "p_influence"),
+                       &MarchingCubesChunk::set_detail_influence);
+  ClassDB::bind_method(D_METHOD("get_detail_influence"),
+                       &MarchingCubesChunk::get_detail_influence);
+  ADD_PROPERTY(PropertyInfo(Variant::FLOAT, "detail_influence"),
+               "set_detail_influence", "get_detail_influence");
+
+  // --- AGREGADO: Propiedades para el ruido de Cuevas ---
+  ClassDB::bind_method(D_METHOD("set_noise_caves", "p_noise"),
+                       &MarchingCubesChunk::set_noise_caves);
+  ClassDB::bind_method(D_METHOD("get_noise_caves"),
+                       &MarchingCubesChunk::get_noise_caves);
+  ADD_PROPERTY(PropertyInfo(Variant::OBJECT, "noise_caves",
+                            PROPERTY_HINT_RESOURCE_TYPE, "FastNoiseLite"),
+               "set_noise_caves", "get_noise_caves");
+
+  ClassDB::bind_method(D_METHOD("set_cave_scale", "p_scale"),
+                       &MarchingCubesChunk::set_cave_scale);
+  ClassDB::bind_method(D_METHOD("get_cave_scale"),
+                       &MarchingCubesChunk::get_cave_scale);
+  ADD_PROPERTY(PropertyInfo(Variant::FLOAT, "cave_scale"), "set_cave_scale",
+               "get_cave_scale");
+
+  ClassDB::bind_method(D_METHOD("set_cave_density_threshold", "p_threshold"),
+                       &MarchingCubesChunk::set_cave_density_threshold);
+  ClassDB::bind_method(D_METHOD("get_cave_density_threshold"),
+                       &MarchingCubesChunk::get_cave_density_threshold);
+  ADD_PROPERTY(PropertyInfo(Variant::FLOAT, "cave_density_threshold"),
+               "set_cave_density_threshold", "get_cave_density_threshold");
 }
 
-// --- CONSTRUCTOR Y _READY (sin cambios) ---
 MarchingCubesChunk::MarchingCubesChunk() {
-  // set_tool(true);
   chunk_size = Vector3i(16, 16, 16);
   isolevel = 0.0;
-  noise_scale = 0.05;
-  noise_height_influence = 20.0;
+  base_terrain_scale = 0.01;
+  base_terrain_height_influence = 50.0;
+  detail_scale = 0.1;
+  detail_influence = 5.0;
+  cave_scale = 0.05;
+  cave_density_threshold = 0.5;
 }
 
 MarchingCubesChunk::~MarchingCubesChunk() {}
 
 void MarchingCubesChunk::_ready() {
-  // --- Configuración del StaticBody3D ---
 
-  // Intentamos encontrar el nodo hijo llamado "StaticBody".
   Node *sb_node = find_child("StaticBody", false, false);
 
-  // Si encontramos un nodo, intentamos hacer un cast seguro a StaticBody3D.
   if (sb_node) {
     static_body = Object::cast_to<StaticBody3D>(sb_node);
   }
 
-  // Si después de todo, static_body sigue siendo nulo (porque no se encontró o
-  // el cast falló), creamos uno nuevo.
   if (!static_body) {
     static_body = memnew(StaticBody3D);
     static_body->set_name("StaticBody");
     add_child(static_body);
   }
 
-  // --- Configuración del CollisionShape3D (depende de static_body) ---
-
-  // Intentamos encontrar su hijo llamado "CollisionShape".
   Node *cs_node = static_body->find_child("CollisionShape", false, false);
 
-  // Si encontramos un nodo, intentamos hacer un cast seguro a CollisionShape3D.
   if (cs_node) {
     collision_shape = Object::cast_to<CollisionShape3D>(cs_node);
   }
 
-  // Si después de todo, collision_shape sigue siendo nulo, lo creamos.
   if (!collision_shape) {
     collision_shape = memnew(CollisionShape3D);
     collision_shape->set_name("CollisionShape");
@@ -389,34 +429,50 @@ void MarchingCubesChunk::_ready() {
   }
 }
 
-// --- FUNCIONES DE AYUDA ---
+double
+MarchingCubesChunk::calculate_world_density(const Vector3i &world_voxel_coord) {
+  double density = -(double)world_voxel_coord.y;
 
-double MarchingCubesChunk::calculate_world_density(const Vector3i &world_voxel_coord) {
-    if (noise.is_null()) {
-        return 1.0; // Sólido por defecto si no hay ruido
+  // --- Capa 1: Ruido de Terreno Base (Montañas, Valles) ---
+  if (noise_base_terrain.is_valid()) {
+    double base_noise = noise_base_terrain->get_noise_3d(
+        (double)world_voxel_coord.x * base_terrain_scale,
+        (double)world_voxel_coord.y * base_terrain_scale,
+        (double)world_voxel_coord.z * base_terrain_scale);
+    // Sumamos el ruido base, afectado por la altura de influencia.
+    // Esto crea las formas principales del terreno.
+    density += base_noise * base_terrain_height_influence;
+  }
+
+  // --- Capa 2: Ruido de Detalle (Rugosidad) ---
+  if (noise_detail.is_valid()) {
+    double detail_noise =
+        noise_detail->get_noise_3d((double)world_voxel_coord.x * detail_scale,
+                                   (double)world_voxel_coord.y * detail_scale,
+                                   (double)world_voxel_coord.z * detail_scale);
+    // density += detail_noise * detail_influence;
+  }
+
+  // --- Capa 3: Ruido de Cuevas (Perforación) ---
+  if (noise_caves.is_valid()) {
+    // Obtenemos un valor de ruido 3D, que va de -1 a 1.
+    double cave_noise =
+        noise_caves->get_noise_3d((double)world_voxel_coord.x * cave_scale,
+                                  (double)world_voxel_coord.y * cave_scale,
+                                  (double)world_voxel_coord.z * cave_scale);
+
+    // Si el valor absoluto del ruido de cueva supera un umbral,
+    // restamos una gran cantidad de densidad para "perforar" un agujero.
+    // Usamos abs() para que las cuevas sean más como "burbujas" o "queso
+    // suizo".
+    if (abs(cave_noise) > cave_density_threshold) {
+      // Restar densidad es como crear espacio vacío.
+      // Restamos un valor grande para asegurarnos de que se cree un hueco.
+      // density -= 10.0;
     }
+  }
 
-    // 1. Calcular la densidad base usando solo la altura (coordenada Y del mundo)
-    // Esto crea un planeta perfectamente plano.
-    // Cuanto más abajo estamos (menor Y), más positivo (sólido) es el valor.
-    // Cuanto más arriba (mayor Y), más negativo (aire) es.
-    // El 'isolevel' (0.0 por defecto) se convierte en el "nivel del mar".
-    double height_gradient = -(double)world_voxel_coord.y;
-
-    // 2. Calcular el valor del ruido 3D en la misma posición.
-    // Usamos el noise_scale para controlar el tamaño de las características del terreno.
-    double noise_value = noise->get_noise_3d(
-        (double)world_voxel_coord.x * noise_scale,
-        (double)world_voxel_coord.y * noise_scale,
-        (double)world_voxel_coord.z * noise_scale
-    );
-
-    // 3. Combinar ambos. La influencia de la altura controla la altura de las montañas.
-    // Multiplicamos el valor del ruido por 'noise_height_influence'.
-    // Esto significa que el ruido ahora modifica la altura de la superficie.
-    double final_density = height_gradient + (noise_value * noise_height_influence);
-
-    return final_density;
+  return density;
 }
 
 Vector3 MarchingCubesChunk::vertex_interpolate(const Vector3 &p1,
@@ -428,14 +484,13 @@ Vector3 MarchingCubesChunk::vertex_interpolate(const Vector3 &p1,
   return p1.lerp(p2, mu);
 }
 
-// --- MÉTODO PRINCIPAL DE GENERACIÓN ---
 void MarchingCubesChunk::generate_mesh() {
-  if (noise.is_null() || chunk_size.x <= 0 || chunk_size.y <= 0 ||
+  if (noise_base_terrain.is_null() || noise_detail.is_null() ||
+      noise_caves.is_null() || chunk_size.x <= 0 || chunk_size.y <= 0 ||
       chunk_size.z <= 0) {
     return;
   }
 
-  // --- 1. Rellenar el buffer de densidad (Sección sin cambios) ---
   const Vector3i buffer_size = chunk_size + Vector3i(2, 2, 2);
   std::vector<double> density_buffer(buffer_size.x * buffer_size.y *
                                      buffer_size.z);
@@ -455,9 +510,8 @@ void MarchingCubesChunk::generate_mesh() {
     }
   }
 
-  // --- 2. Generar Vértices y Normales ---
   PackedVector3Array vertices;
-  PackedVector3Array normals; // Array para almacenar las normales
+  PackedVector3Array normals;
 
   double cell_densities[8];
   Vector3 edge_vertex_positions[12];
@@ -503,8 +557,6 @@ void MarchingCubesChunk::generate_mesh() {
           vertices.push_back(v2);
           vertices.push_back(v3);
 
-
-
           Vector3 normal = (v3 - v1).cross(v2 - v1).normalized();
           normals.push_back(normal);
           normals.push_back(normal);
@@ -514,13 +566,9 @@ void MarchingCubesChunk::generate_mesh() {
     }
   }
 
-  // --- 3. Crear la Malla y la Colisión ---
-
-  // Limpiar la malla anterior antes de asignar una nueva.
   set_mesh(Ref<ArrayMesh>());
 
   if (vertices.size() > 0) {
-    // Solo si hemos generado vértices, creamos y asignamos la malla.
     Ref<ArrayMesh> mesh = memnew(ArrayMesh);
     Array surface_arrays;
     surface_arrays.resize(Mesh::ARRAY_MAX);
@@ -532,9 +580,6 @@ void MarchingCubesChunk::generate_mesh() {
     set_mesh(mesh);
   }
 
-  // --- Asignación de la forma de colisión ---
-
-  // Nos aseguramos de que los nodos de colisión existan.
   if (!static_body || !collision_shape) {
     UtilityFunctions::push_error(
         "MarchingCubesChunk: StaticBody or CollisionShape is null. Cannot set "
@@ -543,17 +588,14 @@ void MarchingCubesChunk::generate_mesh() {
   }
 
   if (vertices.size() > 0) {
-    // Si hay vértices, creamos la forma de colisión.
     Ref<ConcavePolygonShape3D> shape = memnew(ConcavePolygonShape3D);
     shape->set_faces(vertices);
     collision_shape->set_shape(shape);
   } else {
-    // Si no hay vértices, nos aseguramos de que no haya forma de colisión.
     collision_shape->set_shape(Ref<Shape3D>());
   }
 }
 
-// --- SETTERS Y GETTERS (sin cambios) ---
 void MarchingCubesChunk::set_chunk_size(const Vector3i &p_size) {
   chunk_size = p_size;
 }
@@ -566,17 +608,62 @@ void MarchingCubesChunk::set_isolevel(double p_isolevel) {
   isolevel = p_isolevel;
 }
 double MarchingCubesChunk::get_isolevel() const { return isolevel; }
-void MarchingCubesChunk::set_noise_scale(double p_scale) {
-  noise_scale = p_scale;
+void MarchingCubesChunk::set_base_terrain_scale(double p_scale) {
+  base_terrain_scale = p_scale;
 }
-double MarchingCubesChunk::get_noise_scale() const { return noise_scale; }
-void MarchingCubesChunk::set_noise_height_influence(double p_influence) {
-  noise_height_influence = p_influence;
+double MarchingCubesChunk::get_base_terrain_scale() const {
+  return base_terrain_scale;
 }
-double MarchingCubesChunk::get_noise_height_influence() const {
-  return noise_height_influence;
+
+void MarchingCubesChunk::set_detail_scale(double p_scale) {
+  detail_scale = p_scale;
 }
-void MarchingCubesChunk::set_noise(const Ref<FastNoiseLite> &p_noise) {
-  noise = p_noise;
+double MarchingCubesChunk::get_detail_scale() const { return detail_scale; }
+
+void MarchingCubesChunk::set_cave_scale(double p_scale) {
+  cave_scale = p_scale;
 }
-Ref<FastNoiseLite> MarchingCubesChunk::get_noise() const { return noise; }
+double MarchingCubesChunk::get_cave_scale() const { return cave_scale; }
+
+void MarchingCubesChunk::set_base_terrain_height_influence(double p_influence) {
+  base_terrain_height_influence = p_influence;
+}
+double MarchingCubesChunk::get_base_terrain_height_influence() const {
+  return base_terrain_height_influence;
+}
+
+void MarchingCubesChunk::set_detail_influence(double p_influence) {
+  detail_influence = p_influence;
+}
+double MarchingCubesChunk::get_detail_influence() const {
+  return detail_influence;
+}
+
+void MarchingCubesChunk::set_cave_density_threshold(double p_threshold) {
+  cave_density_threshold = p_threshold;
+}
+double MarchingCubesChunk::get_cave_density_threshold() const {
+  return cave_density_threshold;
+}
+
+void MarchingCubesChunk::set_noise_base_terrain(
+    const Ref<FastNoiseLite> &p_noise) {
+  noise_base_terrain = p_noise;
+}
+Ref<FastNoiseLite> MarchingCubesChunk::get_noise_base_terrain() const {
+  return noise_base_terrain;
+}
+
+void MarchingCubesChunk::set_noise_detail(const Ref<FastNoiseLite> &p_noise) {
+  noise_detail = p_noise;
+}
+Ref<FastNoiseLite> MarchingCubesChunk::get_noise_detail() const {
+  return noise_detail;
+}
+
+void MarchingCubesChunk::set_noise_caves(const Ref<FastNoiseLite> &p_noise) {
+  noise_caves = p_noise;
+}
+Ref<FastNoiseLite> MarchingCubesChunk::get_noise_caves() const {
+  return noise_caves;
+}

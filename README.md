@@ -60,32 +60,17 @@ Si olvidaste usar `--recurse-submodules`, puedes inicializarlo después de clona
 git submodule update --init --recursive
 ```
 
-### 2. Compilar `godot-cpp` (Generar Bindings)
+### 2. Compilar la GDExtension del Proyecto
 
-Antes de poder compilar nuestro proyecto, debemos compilar la librería `godot-cpp` que acabamos de descargar. Esto genera los "bindings" que nuestro código necesita para comunicarse con Godot.
-
-Navega dentro de la carpeta `godot-cpp` y ejecuta `scons`.
-
-```bash
-cd godot-cpp
-scons platform=windows  # En Windows
-# scons platform=linux    # En Linux
-# scons platform=macos    # En macOS
-cd .. 
-```
-> **Nota:** Reemplaza `platform=windows` por el que corresponda a tu sistema operativo. Después de que termine, regresa a la carpeta raíz del proyecto con `cd ..`.
-
-### 3. Compilar la GDExtension del Proyecto
-
-Ahora que `godot-cpp` está compilado, puedes construir la GDExtension principal del proyecto. Asegúrate de estar en la **raíz del proyecto** (`LonelySpace`) y ejecuta:
+Para que `godot-cpp` esté compilado y construir la GDExtension principal del proyecto. Asegúrate de estar en la **raíz del proyecto** (`LonelySpace`) y ejecuta:
 
 ```bash
 scons
 ```
 
-Este comando buscará el archivo `SConstruct`, compilará el código C++ de la carpeta `src/`, y colocará la librería compilada (`.dll`, `.so`, o `.dylib`) en la subcarpeta `lonely-space/bin/`, donde Godot espera encontrarla.
+Este comando buscará el archivo `SConstruct`, compilará el código C++ de la carpeta `src/`, y colocará la librería compilada (`.dll`, `.so`, o `.dylib`) en la subcarpeta `lonely-space/bin/`, donde Godot espera encontrarla. Y también al ser recursivo compilará automáticamente los bindings en godot-cpp.
 
-### 4. Abrir en Godot y Ejecutar
+### 3. Abrir en Godot y Ejecutar
 
 ¡Ya casi está!
 

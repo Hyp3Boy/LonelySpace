@@ -8,10 +8,23 @@ var player: Node3D
 
 @export_group("Generation Settings")
 @export var chunk_size_voxels := Vector3i(16, 16, 16)
-@export var noise: FastNoiseLite
+
+@export_group("Noise settings")
+@export var noise_base_terrain: FastNoiseLite # Para la forma general del terreno
+@export var noise_detail: FastNoiseLite       # Para la rugosidad y detalles finos
+@export var noise_caves: FastNoiseLite        # Para generar las cuevas
 @export var isolevel := 0.0
-@export var noise_scale := 0.05
-@export var noise_height_influence := 20.0
+
+@export_group("Noise influence")
+@export var base_terrain_scale := 0.01
+@export var base_terrain_height_influence := 50.0
+
+@export var detail_scale := 0.1
+@export var detail_influence := 5.0
+
+@export var cave_scale := 0.05
+@export var cave_density_threshold := 0.5 # Qué tan "sólido" debe ser el ruido de cueva para crear un agujero
+
 
 @export_group("Render Settings")
 @export var chunk_size_units := Vector3(16.0, 16.0, 16.0)
@@ -31,8 +44,8 @@ func _ready():
 		return
 	player = get_node(player_node_path)
 	
-	if not noise:
-		printerr("TerrainManager: Noise resource not set!")
+	if not noise_base_terrain or not noise_detail or not noise_caves:
+		printerr("TerrainManager: One of noise resource not set!")
 		set_process(false)
 		return
 	
@@ -102,13 +115,20 @@ func _process_one_chunk_generation():
 		float(coord_to_generate.z) * chunk_size_units.z
 	)
 	
-	# ... (toda la configuración de noise, isolevel, etc. sigue igual) ...
 	new_chunk_instance.chunk_coord = coord_to_generate
 	new_chunk_instance.chunk_size = chunk_size_voxels
-	new_chunk_instance.noise = noise
 	new_chunk_instance.isolevel = isolevel
-	new_chunk_instance.noise_scale = noise_scale
-	new_chunk_instance.noise_height_influence = noise_height_influence
+	
+	new_chunk_instance.noise_base_terrain = noise_base_terrain
+	new_chunk_instance.noise_detail = noise_detail
+	new_chunk_instance.noise_caves = noise_caves
+	
+	new_chunk_instance.base_terrain_scale = base_terrain_scale
+	new_chunk_instance.base_terrain_height_influence = base_terrain_height_influence
+	new_chunk_instance.detail_scale = detail_scale
+	new_chunk_instance.detail_influence = detail_influence
+	new_chunk_instance.cave_scale = cave_scale
+	new_chunk_instance.cave_density_threshold = cave_density_threshold
 	
 	# La generación de C++ funciona, porque la colisión existe
 	new_chunk_instance.generate_mesh()	

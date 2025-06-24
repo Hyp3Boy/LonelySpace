@@ -1,4 +1,4 @@
-[gd_scene load_steps=13 format=3 uid="uid://cyfhkop5lmjiy"]
+[gd_scene load_steps=15 format=3 uid="uid://cyfhkop5lmjiy"]
 
 [ext_resource type="Shader" uid="uid://depgnlj35u8on" path="res://Scenes/World/main_world.gdshader" id="3_k14oj"]
 [ext_resource type="PackedScene" uid="uid://bty0w8iycikj6" path="res://Scenes/Robot/robot.tscn" id="3_xlilg"]
@@ -29,7 +29,11 @@ shader_parameter/macro_color_b = Color(0.85, 0.85, 0.85, 1)
 shader_parameter/roughness = 0.8
 shader_parameter/metallic = 0.0
 
-[sub_resource type="FastNoiseLite" id="FastNoiseLite_daffl"]
+[sub_resource type="FastNoiseLite" id="FastNoiseLite_e7gcc"]
+
+[sub_resource type="FastNoiseLite" id="FastNoiseLite_e0r0o"]
+
+[sub_resource type="FastNoiseLite" id="FastNoiseLite_1jidv"]
 
 [sub_resource type="PhysicalSkyMaterial" id="PhysicalSkyMaterial_xlilg"]
 
@@ -51,8 +55,10 @@ transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 20, 0)
 script = ExtResource("4_k14oj")
 player_node_path = NodePath("../robot")
 terrain_material = SubResource("ShaderMaterial_xlilg")
-noise = SubResource("FastNoiseLite_daffl")
-noise_scale = 1.0
+noise_base_terrain = SubResource("FastNoiseLite_e7gcc")
+noise_detail = SubResource("FastNoiseLite_e0r0o")
+noise_caves = SubResource("FastNoiseLite_1jidv")
+base_terrain_scale = 1.0
 
 [node name="WorldEnvironment" type="WorldEnvironment" parent="."]
 environment = SubResource("Environment_xlilg")
