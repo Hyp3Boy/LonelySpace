@@ -6,6 +6,18 @@ const JUMP_VELOCITY = 6
 
 var xform: Transform3D
 
+# Esta función se ejecuta una sola vez cuando el nodo entra en la escena.
+func _ready() -> void:
+	# "Congelamos" el nodo. No procesará física, ni input, ni _physics_process.
+	process_mode = PROCESS_MODE_DISABLED
+	print("Robot: 'Congelado' al inicio. Esperando señal del terreno.")
+
+# Esta es la función que conectaremos a la señal del TerrainManager.
+func on_terrain_ready() -> void:
+	print("Robot: ¡Señal recibida! 'Descongelando' y activando la física.")
+	# Reactivamos el nodo. Ahora la gravedad y el control funcionarán.
+	process_mode = PROCESS_MODE_INHERIT
+
 
 func _physics_process(delta: float) -> void:
 	# Get the input direction and handle the movement/deceleration.

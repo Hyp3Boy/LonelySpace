@@ -1,5 +1,9 @@
 extends Node3D
 
+signal initial_terrain_generated
+var _signal_emitted := false
+var _player_initial_chunk_coord: Vector3i # <-- AÑADE ESTA LÍNEA
+
 # --- Configuración del Manager ---
 @export var player_node_path: NodePath
 var player: Node3D
@@ -43,6 +47,10 @@ func _ready():
 		set_process(false)
 		return
 	player = get_node(player_node_path)
+	
+	# === AÑADE ESTA LÍNEA ===
+	_player_initial_chunk_coord = _get_chunk_coord_from_world_pos(player.global_position)
+	# === FIN DE LA LÍNEA AÑADIDA ===
 	
 	if not noise_base_terrain or not noise_detail or not noise_caves:
 		printerr("TerrainManager: One of noise resource not set!")
@@ -136,10 +144,18 @@ func _process_one_chunk_generation():
 	# === CORRECCIÓN AQUÍ ===
 	# Asignamos el material a la instancia del nodo, no a la superficie de la malla.
 	# Esto asegura que el chunk se renderice con nuestro material.
-	var chunk_mesh = new_chunk_instance.get_mesh()
+	var chunk_mesh = new_chunk_instance.get_mesh()	
 	if chunk_mesh and chunk_mesh.get_surface_count() > 0:
 		new_chunk_instance.material_override = terrain_material
 		active_chunks[coord_to_generate] = new_chunk_instance
+		# === LÓGICA DE SEÑAL MEJORADA ===
+		# Solo si el chunk es válido, consideramos emitir la señal.
+		if not _signal_emitted and coord_to_generate == _player_initial_chunk_coord:
+			_signal_emitted = true
+			# Añadimos un print para saber QUÉ chunk disparó la señal.
+			print("TerrainManager: ¡El chunk inicial del jugador (%s) está listo! Emitiendo señal..." % coord_to_generate)
+			initial_terrain_generated.emit()
+		# === FIN DE LA LÓGICA DE SEÑAL ===
 	else:
 		new_chunk_instance.queue_free()
 	
