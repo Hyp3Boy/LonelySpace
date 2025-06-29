@@ -16,7 +16,7 @@ var player: Node3D
 @export var isolevel := 0.0
 
 @export_group("Noise influence")
-@export var base_terrain_scale := 0.01
+@export var base_terrain_scale := 1
 @export var base_terrain_height_influence := 50.0
 
 @export var detail_scale := 0.1
@@ -33,6 +33,7 @@ var player: Node3D
 
 var active_chunks: Dictionary = {}
 var chunks_to_generate: Array[Vector3i] = []
+var newly_discovered_chunks: Array[Vector3i] = []
 var chunks_to_remove: Array[Node] = []
 var time_since_last_update := 0.0
 var current_player_chunk_coord := Vector3i(9999, 9999, 9999)
@@ -89,15 +90,27 @@ func _update_chunks_visibility():
 					chunks_to_keep[target_coord] = active_chunks[target_coord]
 					active_chunks.erase(target_coord)
 				elif not chunks_to_generate.has(target_coord):
-					chunks_to_generate.append(target_coord)
+					newly_discovered_chunks.append(target_coord)
 	
 	for chunk_node in active_chunks.values():
 		if is_instance_valid(chunk_node) and not chunks_to_remove.has(chunk_node):
 			chunks_to_remove.append(chunk_node)
 	
 	active_chunks = chunks_to_keep
+	# === LA MAGIA OCURRE AQUÍ ===
+	if not newly_discovered_chunks.is_empty():
+		# 1. Ordena la lista de los chunks recién descubiertos por distancia.
+		newly_discovered_chunks.sort_custom(_sort_chunks_by_distance)
+		
+		# 2. Añade los chunks ya ordenados a la cola de generación principal.
+		#    Esto asegura que los más cercanos se procesen primero.
+		chunks_to_generate.append_array(newly_discovered_chunks)
 
-# --- FUNCIÓN CORREGIDA ---
+func _sort_chunks_by_distance(a: Vector3i, b: Vector3i) -> bool:
+	var dist_a_sq = current_player_chunk_coord.distance_squared_to(a)
+	var dist_b_sq = current_player_chunk_coord.distance_squared_to(b)
+	return dist_a_sq < dist_b_sq
+	
 func _process_one_chunk_generation():
 	if chunks_to_generate.is_empty(): return
 	

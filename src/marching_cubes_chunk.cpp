@@ -392,7 +392,7 @@ void MarchingCubesChunk::_bind_methods() {
 MarchingCubesChunk::MarchingCubesChunk() {
   chunk_size = Vector3i(16, 16, 16);
   isolevel = 0.0;
-  base_terrain_scale = 0.01;
+  base_terrain_scale = 1;
   base_terrain_height_influence = 50.0;
   detail_scale = 0.1;
   detail_influence = 5.0;
@@ -450,7 +450,7 @@ MarchingCubesChunk::calculate_world_density(const Vector3i &world_voxel_coord) {
         noise_detail->get_noise_3d((double)world_voxel_coord.x * detail_scale,
                                    (double)world_voxel_coord.y * detail_scale,
                                    (double)world_voxel_coord.z * detail_scale);
-    // density += detail_noise * detail_influence;
+    density += detail_noise * detail_influence;
   }
 
   // --- Capa 3: Ruido de Cuevas (Perforación) ---
@@ -468,7 +468,7 @@ MarchingCubesChunk::calculate_world_density(const Vector3i &world_voxel_coord) {
     if (abs(cave_noise) > cave_density_threshold) {
       // Restar densidad es como crear espacio vacío.
       // Restamos un valor grande para asegurarnos de que se cree un hueco.
-      // density -= 10.0;
+      density -= 10.0;
     }
   }
 
