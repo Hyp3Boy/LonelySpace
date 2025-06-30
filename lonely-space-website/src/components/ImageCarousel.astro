@@ -1,0 +1,97 @@
+---
+// src/components/ImageCarousel.astro
+
+// Importamos los estilos de Swiper
+import type { ACTION_ERROR_CODES } from "astro:actions";
+import "swiper/css";
+import "swiper/css/navigation";
+import "swiper/css/pagination";
+
+// 1. DEFINIMOS EL TIPADO PARA CADA IMAGEN
+// Cada imagen será un objeto con una URL (src) y un texto alternativo (alt).
+type Image = {
+    src: string;
+    alt: string;
+};
+
+// 2. DEFINIMOS LA INTERFAZ PARA LAS PROPS DEL COMPONENTE
+// Le decimos a Astro que este componente espera una prop "images" que es un
+// array de objetos "Image". La hacemos opcional (?) para evitar errores.
+interface Props {
+    images?: Image[];
+}
+
+// 3. RECIBIMOS LAS PROPS
+// Astro usará la interfaz "Props" para validar y tipar "Astro.props".
+// Ahora, si intentas pasar algo que no sea un array de objetos {src, alt},
+// TypeScript te avisará de un error.
+const { images = [] } = Astro.props;
+---
+
+{
+    images.length > 0 && (
+        <div class="swiper">
+            <div class="swiper-wrapper">
+                {/* 4. USAMOS LA ESTRUCTURA DE DATOS TIPADA */}
+                {/* Ahora "image" está correctamente tipado como "Image", y podemos acceder a
+                image.src y image.alt con la seguridad de que existen. */}
+                {images.map((image) => (
+                    <div class="swiper-slide">
+                        <img src={image.src} alt={image.alt} loading="lazy" />
+                    </div>
+                ))}
+            </div>
+
+            <div class="swiper-button-prev" />
+            <div class="swiper-button-next" />
+            <div class="swiper-pagination" />
+        </div>
+    )
+}
+
+<script>
+    import Swiper from "swiper";
+    import { Navigation, Pagination } from "swiper/modules";
+    // Este código no cambia, ya que solo manipula el DOM.
+    const swiper = new Swiper(".swiper", {
+        modules: [Navigation, Pagination],
+        loop: true,
+        pagination: {
+            el: ".swiper-pagination",
+            clickable: true,
+        },
+        navigation: {
+            nextEl: ".swiper-button-next",
+            prevEl: ".swiper-button-prev",
+        },
+    });
+</script>
+
+<style>
+    /* Los estilos no cambian */
+    .swiper {
+        width: 100%;
+        height: 500px;
+        border-radius: 8px;
+    }
+    .swiper-slide {
+        text-align: center;
+        background: #000;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+    }
+    .swiper-slide img {
+        display: block;
+        width: 100%;
+        height: 100%;
+        object-fit: contain;
+    }
+    .swiper-button-next,
+    .swiper-button-prev {
+        color: var(--primary-color, #3d5af1);
+    }
+    .swiper-pagination-bullet-active {
+        background: var(--primary-color, #3d5af1);
+    }
+</style>

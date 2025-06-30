@@ -1,0 +1,242 @@
+---
+// src/pages/index.astro
+
+import ImageCarousel from "../components/ImageCarousel.astro";
+
+// Datos de la página
+const pageTitle = "Lonely Space - Un Universo Procedural";
+const projectRepoUrl = "https://github.com/Hyp3Boy/LonelySpace";
+const yourName = "[Tu Nombre]"; // ¡Cambia esto!
+const linkedInUrl = "https://linkedin.com/in/tu-usuario"; // ¡Cambia esto!
+
+const galleryImages = [
+    {
+        src: "/images/screen1.png",
+        alt: "Vista de un planeta generado proceduralmente en Lonely Space",
+    },
+    {
+        src: "/images/screen2.png",
+        alt: "Explorando la superficie de un mundo con terreno complejo",
+    },
+    {
+        src: "/images/screen3.png",
+        alt: "Entrada a un sistema de cuevas creado con Marching Cubes",
+    },
+    {
+        src: "/images/screen4.png",
+        alt: "Nave espacial sobrevolando un cañón en un planeta desértico",
+    },
+];
+---
+
+<html lang="es">
+    <head>
+        <meta charset="utf-8" />
+        <meta name="viewport" content="width=device-width" />
+        <meta name="generator" content={Astro.generator} />
+        <title>{pageTitle}</title>
+
+        <link rel="preconnect" href="https://fonts.googleapis.com" />
+        <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+        <link
+            href="https://fonts.googleapis.com/css2?family=Orbitron:wght@700&family=Roboto:wght@400;700&display=swap"
+            rel="stylesheet"
+        />
+    </head>
+    <body>
+        <header class="hero">
+            <div class="hero-content">
+                <h1>Lonely Space</h1>
+                <p>Un universo infinito generado proceduralmente te espera.</p>
+                <a href={projectRepoUrl} target="_blank" class="button"
+                    >Ver en GitHub</a
+                >
+            </div>
+        </header>
+
+        <main>
+            <section class="container">
+                <h2>¿Qué es Lonely Space?</h2>
+                <p>
+                    Lonely Space es un prototipo de exploración espacial donde
+                    cada planeta, asteroide y sistema estelar es único, creado
+                    al instante a través de un sofisticado sistema de generación
+                    procedural. Es una demo técnica que explora la creación de
+                    mundos infinitos y detallados en tiempo real usando Godot
+                    Engine.
+                </p>
+            </section>
+
+            <section class="container features">
+                <h2>Características Principales</h2>
+                <div class="cards">
+                    <div class="card">
+                        <h3>Generación Procedural</h3>
+                        <p>
+                            Terrenos complejos y variados usando ruido Perlin y
+                            Simplex para crear montañas, valles y cuevas.
+                        </p>
+                    </div>
+                    <div class="card">
+                        <h3>Marching Cubes</h3>
+                        <p>
+                            Implementado en C++ con GDExtension para un
+                            rendimiento óptimo en la creación de mallas 3D
+                            suaves.
+                        </p>
+                    </div>
+                    <div class="card">
+                        <h3>Motor Godot</h3>
+                        <p>
+                            Toda la lógica del juego y el `TerrainManager` están
+                            escritos en GDScript, integrándose perfectamente con
+                            la extensión.
+                        </p>
+                    </div>
+                </div>
+            </section>
+
+            <section class="container">
+                <h2>Galería Interactiva</h2>
+                <ImageCarousel images={galleryImages} client:visible />
+            </section>
+
+            <section class="container tech-details">
+                <h2>El Motor Detrás del Universo</h2>
+                <p>
+                    El corazón de Lonely Space es la combinación de la
+                    flexibilidad de <strong>GDScript</strong> con el poder de <strong
+                        >C++</strong
+                    >. El `TerrainManager` (GDScript) decide qué terreno
+                    generar, mientras que la GDExtension (C++) se encarga del
+                    trabajo pesado del algoritmo Marching Cubes, resultando en
+                    un sistema eficiente y escalable.
+                </p>
+                <a
+                    href={projectRepoUrl}
+                    target="_blank"
+                    class="button-secondary">Explorar el Código</a
+                >
+            </section>
+        </main>
+
+        <footer>
+            <p>
+                Hecho por {yourName} | <a href={projectRepoUrl} target="_blank"
+                    >GitHub</a
+                > | <a href={linkedInUrl} target="_blank">LinkedIn</a>
+            </p>
+        </footer>
+    </body>
+</html>
+
+<style is:global>
+    :root {
+        --primary-color: #3d5af1;
+        --secondary-color: #7c4dff;
+        --dark-bg: #121212;
+        --light-text: #e0e0e0;
+        --card-bg: #1e1e1e;
+    }
+    body {
+        font-family: "Roboto", sans-serif;
+        background-color: var(--dark-bg);
+        color: var(--light-text);
+        margin: 0;
+        line-height: 1.6;
+    }
+    h1,
+    h2,
+    h3 {
+        font-family: "Orbitron", sans-serif;
+    }
+    h2 {
+        font-size: 2.5rem;
+        margin-bottom: 1rem;
+    }
+    .hero {
+        background-image:
+            linear-gradient(rgba(0, 0, 0, 0.7), rgba(0, 0, 0, 0.7)),
+            url("/images/hero-bg.jpg");
+        background-size: cover;
+        background-position: center;
+        height: 100vh;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        text-align: center;
+        color: white;
+    }
+    .hero-content h1 {
+        font-size: 4rem;
+        margin-bottom: 0.5rem;
+    }
+    .hero-content p {
+        font-size: 1.5rem;
+        margin-bottom: 2rem;
+    }
+    .button {
+        background-color: var(--primary-color);
+        color: white;
+        padding: 15px 30px;
+        text-decoration: none;
+        border-radius: 5px;
+        font-weight: bold;
+        transition: background-color 0.3s;
+    }
+    .button:hover {
+        background-color: #2943c8;
+    }
+    .button-secondary {
+        background-color: transparent;
+        color: var(--primary-color);
+        padding: 13px 28px;
+        text-decoration: none;
+        border-radius: 5px;
+        font-weight: bold;
+        border: 2px solid var(--primary-color);
+        transition: all 0.3s;
+        display: inline-block;
+        margin-top: 1rem;
+    }
+    .button-secondary:hover {
+        background-color: var(--primary-color);
+        color: white;
+    }
+    .container {
+        max-width: 900px;
+        margin: 5rem auto;
+        padding: 0 2rem;
+        text-align: center;
+    }
+    .features .cards {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+        gap: 1.5rem;
+        margin-top: 2rem;
+        text-align: left;
+    }
+    .card {
+        background-color: var(--card-bg);
+        padding: 1.5rem;
+        border-radius: 8px;
+        border-left: 4px solid var(--primary-color);
+    }
+    .tech-details strong {
+        color: var(--secondary-color);
+    }
+    footer {
+        text-align: center;
+        padding: 2rem;
+        margin-top: 4rem;
+        background-color: var(--card-bg);
+        border-top: 1px solid #333;
+    }
+    footer a {
+        color: var(--primary-color);
+        text-decoration: none;
+    }
+    footer a:hover {
+        text-decoration: underline;
+    }
+</style>
