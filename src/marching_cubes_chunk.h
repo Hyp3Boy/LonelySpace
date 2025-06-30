@@ -42,9 +42,10 @@ private:
   static const Vector3i CUBE_VERTICES[8];
   static const int CUBE_EDGES[12][2];
 
-  double calculate_world_density(const Vector3i &world_voxel_coord);
+  double calculate_world_density(const Vector3 &world_voxel_coord);
   Vector3 vertex_interpolate(const Vector3 &p1, const Vector3 &p2, double val1,
                              double val2);
+  Vector3 calculate_vertex_normal(const Vector3 &world_pos);
 
 protected:
   static void _bind_methods();

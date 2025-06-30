@@ -429,50 +429,45 @@ void MarchingCubesChunk::_ready() {
   }
 }
 
-double
-MarchingCubesChunk::calculate_world_density(const Vector3i &world_voxel_coord) {
-  double density = -(double)world_voxel_coord.y;
+// Sobrecarga o modifica tu calculate_world_density para que acepte Vector3
+double MarchingCubesChunk::calculate_world_density(const Vector3 &world_pos) {
+    // La lógica es la misma, solo que ahora usamos las coordenadas flotantes de world_pos
+    // --- Capa 0: Base de Altura ---
+    double density = -world_pos.y;
 
-  // --- Capa 1: Ruido de Terreno Base (Montañas, Valles) ---
-  if (noise_base_terrain.is_valid()) {
-    double base_noise = noise_base_terrain->get_noise_3d(
-        (double)world_voxel_coord.x * base_terrain_scale,
-        (double)world_voxel_coord.y * base_terrain_scale,
-        (double)world_voxel_coord.z * base_terrain_scale);
-    // Sumamos el ruido base, afectado por la altura de influencia.
-    // Esto crea las formas principales del terreno.
-    density += base_noise * base_terrain_height_influence;
-  }
-
-  // --- Capa 2: Ruido de Detalle (Rugosidad) ---
-  if (noise_detail.is_valid()) {
-    double detail_noise =
-        noise_detail->get_noise_3d((double)world_voxel_coord.x * detail_scale,
-                                   (double)world_voxel_coord.y * detail_scale,
-                                   (double)world_voxel_coord.z * detail_scale);
-    density += detail_noise * detail_influence;
-  }
-
-  // --- Capa 3: Ruido de Cuevas (Perforación) ---
-  if (noise_caves.is_valid()) {
-    // Obtenemos un valor de ruido 3D, que va de -1 a 1.
-    double cave_noise =
-        noise_caves->get_noise_3d((double)world_voxel_coord.x * cave_scale,
-                                  (double)world_voxel_coord.y * cave_scale,
-                                  (double)world_voxel_coord.z * cave_scale);
-
-    // Si el valor absoluto del ruido de cueva supera un umbral,
-    // restamos una gran cantidad de densidad para "perforar" un agujero.
-    // Usamos abs() para que las cuevas sean más como "burbujas" o "queso
-    // suizo".
-    if (abs(cave_noise) > cave_density_threshold) {
-      // Restar densidad es como crear espacio vacío.
-      // Restamos un valor grande para asegurarnos de que se cree un hueco.
-      density -= 10.0;
+    // --- Capa 1: Ruido de Terreno Base (Montañas, Valles) ---
+    if (noise_base_terrain.is_valid()) {
+        double base_noise = noise_base_terrain->get_noise_3d(
+            world_pos.x * base_terrain_scale,
+            world_pos.y * base_terrain_scale,
+            world_pos.z * base_terrain_scale
+        );
+        density += base_noise * base_terrain_height_influence;
     }
-  }
 
-  return density;
+    // --- Capa 2: Ruido de Detalle (Rugosidad) ---
+    if (noise_detail.is_valid()) {
+        double detail_noise = noise_detail->get_noise_3d(
+            world_pos.x * detail_scale,
+            world_pos.y * detail_scale,
+            world_pos.z * detail_scale
+        );
+        density += detail_noise * detail_influence;
+    }
+
+    // --- Capa 3: Ruido de Cuevas (Perforación) ---
+    if (noise_caves.is_valid()) {
+        double cave_noise = noise_caves->get_noise_3d(
+            world_pos.x * cave_scale,
+            world_pos.y * cave_scale,
+            world_pos.z * cave_scale
+        );
+        if (abs(cave_noise) > cave_density_threshold) {
+            density -= 10.0;
+        }
+    }
+
+    return density;
 }
 
 Vector3 MarchingCubesChunk::vertex_interpolate(const Vector3 &p1,
@@ -482,6 +477,37 @@ Vector3 MarchingCubesChunk::vertex_interpolate(const Vector3 &p1,
     return p1;
   double mu = (isolevel - val1) / (val2 - val1);
   return p1.lerp(p2, mu);
+}
+
+// MarchingCubesChunk.cpp
+
+// Añade esta nueva función en alguna parte antes de generate_mesh()
+
+Vector3 MarchingCubesChunk::calculate_vertex_normal(const Vector3 &world_pos) {
+    // Epsilon es una distancia muy pequeña para tomar las muestras.
+    // Si es muy grande, la normal será imprecisa. Si es muy pequeña, puedes tener problemas de precisión de punto flotante.
+    // 0.001 suele ser un buen punto de partida.
+    const double epsilon = 0.001;
+
+    // Calcula la "pendiente" de la densidad a lo largo del eje X.
+    double grad_x = calculate_world_density(world_pos + Vector3(epsilon, 0, 0)) -
+                    calculate_world_density(world_pos - Vector3(epsilon, 0, 0));
+
+    // Calcula la "pendiente" de la densidad a lo largo del eje Y.
+    double grad_y = calculate_world_density(world_pos + Vector3(0, epsilon, 0)) -
+                    calculate_world_density(world_pos - Vector3(0, epsilon, 0));
+
+    // Calcula la "pendiente" de la densidad a lo largo del eje Z.
+    double grad_z = calculate_world_density(world_pos + Vector3(0, 0, epsilon)) -
+                    calculate_world_density(world_pos - Vector3(0, 0, epsilon));
+
+    // El vector gradiente es la combinación de estas pendientes.
+    Vector3 gradient = Vector3(grad_x, grad_y, grad_z);
+
+    // La normal es simplemente el gradiente normalizado.
+    // Lo negamos porque el gradiente apunta "hacia adentro" del sólido (hacia mayor densidad),
+    // y la normal debe apuntar "hacia afuera".
+    return -gradient.normalized();
 }
 
 void MarchingCubesChunk::generate_mesh() {
@@ -515,6 +541,12 @@ void MarchingCubesChunk::generate_mesh() {
 
   double cell_densities[8];
   Vector3 edge_vertex_positions[12];
+
+  Vector3 chunk_world_pos = Vector3(
+      chunk_coord.x * chunk_size.x,
+      chunk_coord.y * chunk_size.y,
+      chunk_coord.z * chunk_size.z
+  );
 
   for (int x = 0; x < chunk_size.x; ++x) {
     for (int y = 0; y < chunk_size.y; ++y) {
@@ -557,10 +589,13 @@ void MarchingCubesChunk::generate_mesh() {
           vertices.push_back(v2);
           vertices.push_back(v3);
 
-          Vector3 normal = (v3 - v1).cross(v2 - v1).normalized();
-          normals.push_back(normal);
-          normals.push_back(normal);
-          normals.push_back(normal);
+          Vector3 n1 = calculate_vertex_normal(chunk_world_pos + v1);
+                    Vector3 n2 = calculate_vertex_normal(chunk_world_pos + v2);
+                    Vector3 n3 = calculate_vertex_normal(chunk_world_pos + v3);
+
+                    normals.push_back(n1);
+                    normals.push_back(n2);
+                    normals.push_back(n3);
         }
       }
     }
