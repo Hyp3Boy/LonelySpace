@@ -33,7 +33,7 @@ var player: Node3D
 
 var active_chunks: Dictionary = {}
 var chunks_to_generate: Array[Vector3i] = []
-var newly_discovered_chunks: Array[Vector3i] = []
+#var newly_discovered_chunks: Array[Vector3i] = []
 var chunks_to_remove: Array[Node] = []
 var time_since_last_update := 0.0
 var current_player_chunk_coord := Vector3i(9999, 9999, 9999)
@@ -80,6 +80,8 @@ func _update_chunks_visibility():
 	
 	current_player_chunk_coord = new_player_chunk_coord
 	var chunks_to_keep: Dictionary = {}
+	
+	var newly_discovered_chunks: Array[Vector3i] = []
 
 	for x in range(-render_distance_chunks.x, render_distance_chunks.x + 1):
 		for y in range(-render_distance_chunks.y, render_distance_chunks.y + 1):
