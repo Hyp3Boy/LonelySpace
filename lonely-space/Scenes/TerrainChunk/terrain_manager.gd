@@ -168,7 +168,7 @@ func _process_one_chunk_generation():
 		else:
 			print(" -> ADVERTENCIA: La malla no tiene superficies.")
 	else:
-		print(" -> ERROR: El chunk no tiene recurso de malla asignado.")
+		print(" -> INFO: El chunk no tiene recurso de malla asignado.")
 	
 	active_chunks[coord_to_generate] = new_chunk_instance
 
