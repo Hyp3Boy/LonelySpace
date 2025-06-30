@@ -1,46 +1,6 @@
-[gd_scene load_steps=15 format=3 uid="uid://cyfhkop5lmjiy"]
+[gd_scene load_steps=9 format=3 uid="uid://cyfhkop5lmjiy"]
 
-[ext_resource type="Shader" uid="uid://depgnlj35u8on" path="res://Scenes/World/main_world.gdshader" id="3_k14oj"]
 [ext_resource type="PackedScene" uid="uid://bty0w8iycikj6" path="res://Scenes/Robot/robot.tscn" id="3_xlilg"]
-[ext_resource type="Texture2D" uid="uid://b1rc4ow33movw" path="res://Assets/Texture/Ground080_1K-JPG/Ground080_1K-JPG_Color.jpg" id="4_e7gcc"]
-[ext_resource type="Script" uid="uid://i1f5erp8e4b4" path="res://Scenes/TerrainChunk/terrain_manager.gd" id="4_k14oj"]
-[ext_resource type="Texture2D" uid="uid://byhs57jbtylr2" path="res://Assets/Texture/Ground080_1K-JPG/Ground080_1K-JPG_NormalDX.jpg" id="5_e7gcc"]
-[ext_resource type="Texture2D" uid="uid://dpe8772j5jep3" path="res://Assets/Texture/Rock060_1K-JPG/Rock060_1K-JPG_Color.jpg" id="6_e0r0o"]
-[ext_resource type="Texture2D" uid="uid://s3pxa4wy5ut8" path="res://Assets/Texture/Rock060_1K-JPG/Rock060_1K-JPG_NormalGL.jpg" id="7_80kkn"]
-
-[sub_resource type="ShaderMaterial" id="ShaderMaterial_xlilg"]
-render_priority = 0
-shader = ExtResource("3_k14oj")
-shader_parameter/rock_albedo_texture = ExtResource("6_e0r0o")
-shader_parameter/rock_normal_texture = ExtResource("7_80kkn")
-shader_parameter/rock_tint = Color(1, 1, 1, 1)
-shader_parameter/dirt_albedo_texture = ExtResource("4_e7gcc")
-shader_parameter/dirt_normal_texture = ExtResource("5_e7gcc")
-shader_parameter/dirt_tint = Color(1, 1, 1, 1)
-shader_parameter/texture_scale = 5.0
-shader_parameter/texture_offset_strength = 0.5
-shader_parameter/blend_power = 4.0
-shader_parameter/blend_sharpness = 15.0
-shader_parameter/steepness_threshold = 0.45
-shader_parameter/macro_noise_scale = 0.1
-shader_parameter/macro_noise_influence = 0.15
-shader_parameter/macro_color_a = Color(1, 1, 1, 1)
-shader_parameter/macro_color_b = Color(0.85, 0.85, 0.85, 1)
-shader_parameter/roughness = 0.8
-shader_parameter/metallic = 0.0
-
-[sub_resource type="FastNoiseLite" id="FastNoiseLite_e7gcc"]
-
-[sub_resource type="FastNoiseLite" id="FastNoiseLite_e0r0o"]
-noise_type = 0
-frequency = 0.1
-fractal_octaves = 3
-
-[sub_resource type="FastNoiseLite" id="FastNoiseLite_1jidv"]
-noise_type = 0
-frequency = 0.05
-fractal_type = 3
-fractal_octaves = 4
 
 [sub_resource type="PhysicalSkyMaterial" id="PhysicalSkyMaterial_xlilg"]
 
@@ -53,18 +13,19 @@ ambient_light_source = 3
 tonemap_mode = 3
 ssao_enabled = true
 
+[sub_resource type="ShaderMaterial" id="ShaderMaterial_hclou"]
+
+[sub_resource type="FastNoiseLite" id="FastNoiseLite_hclou"]
+
+[sub_resource type="FastNoiseLite" id="FastNoiseLite_daffl"]
+
+[sub_resource type="FastNoiseLite" id="FastNoiseLite_xlilg"]
+fractal_type = 2
+
 [node name="Main World" type="Node3D"]
 
 [node name="robot" parent="." instance=ExtResource("3_xlilg")]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 20, 0)
-
-[node name="TerrainManager" type="Node3D" parent="."]
-script = ExtResource("4_k14oj")
-player_node_path = NodePath("../robot")
-terrain_material = SubResource("ShaderMaterial_xlilg")
-noise_base_terrain = SubResource("FastNoiseLite_e7gcc")
-noise_detail = SubResource("FastNoiseLite_e0r0o")
-noise_caves = SubResource("FastNoiseLite_1jidv")
 
 [node name="WorldEnvironment" type="WorldEnvironment" parent="."]
 environment = SubResource("Environment_xlilg")
@@ -72,3 +33,12 @@ environment = SubResource("Environment_xlilg")
 [node name="DirectionalLight3D" type="DirectionalLight3D" parent="."]
 transform = Transform3D(0.866025, 0.409576, -0.286788, 0, 0.573576, 0.819152, 0.5, -0.709406, 0.496732, 0, 877.885, 0)
 shadow_enabled = true
+
+[node name="TerrainManager" type="TerrainManager" parent="."]
+player_node_path = NodePath("../robot")
+terrain_material = SubResource("ShaderMaterial_hclou")
+chunk_size_units = Vector3(32, 32, 32)
+noise_base_terrain = SubResource("FastNoiseLite_hclou")
+noise_detail = SubResource("FastNoiseLite_daffl")
+noise_caves = SubResource("FastNoiseLite_xlilg")
+base_terrain_scale = 1.0

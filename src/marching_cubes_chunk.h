@@ -18,6 +18,7 @@ class MarchingCubesChunk : public MeshInstance3D {
 
 private:
   Vector3i chunk_size;
+  Vector3 chunk_size_units; // Tamaño en el mundo
   Vector3i chunk_coord;
   double isolevel;
 
@@ -57,6 +58,9 @@ public:
   void _ready() override;
 
   void generate_mesh();
+
+  void set_chunk_size_units(const Vector3& p_size);
+    Vector3 get_chunk_size_units() const;
 
   void set_chunk_size(const Vector3i &p_size);
   Vector3i get_chunk_size() const;

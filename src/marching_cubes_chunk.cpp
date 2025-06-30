@@ -300,6 +300,13 @@ const int MarchingCubesChunk::CUBE_EDGES[12][2] = {
 void MarchingCubesChunk::_bind_methods() {
   ClassDB::bind_method(D_METHOD("generate_mesh"),
                        &MarchingCubesChunk::generate_mesh);
+  ClassDB::bind_method(D_METHOD("set_chunk_size_units", "p_size"),
+                       &MarchingCubesChunk::set_chunk_size_units);
+  ClassDB::bind_method(D_METHOD("get_chunk_size_units"),
+                       &MarchingCubesChunk::get_chunk_size_units);
+  ADD_PROPERTY(PropertyInfo(Variant::VECTOR3I, "chunk_size_units"),
+               "set_chunk_size_units", "get_chunk_size_units");
+
   ClassDB::bind_method(D_METHOD("set_chunk_size", "p_size"),
                        &MarchingCubesChunk::set_chunk_size);
   ClassDB::bind_method(D_METHOD("get_chunk_size"),
@@ -342,7 +349,6 @@ void MarchingCubesChunk::_bind_methods() {
                "set_base_terrain_height_influence",
                "get_base_terrain_height_influence");
 
-  // --- AGREGADO: Propiedades para el ruido de Detalle ---
   ClassDB::bind_method(D_METHOD("set_noise_detail", "p_noise"),
                        &MarchingCubesChunk::set_noise_detail);
   ClassDB::bind_method(D_METHOD("get_noise_detail"),
@@ -392,82 +398,54 @@ void MarchingCubesChunk::_bind_methods() {
 MarchingCubesChunk::MarchingCubesChunk() {
   chunk_size = Vector3i(16, 16, 16);
   isolevel = 0.0;
-  base_terrain_scale = 1;
+  base_terrain_scale = 1.0;
   base_terrain_height_influence = 50.0;
   detail_scale = 0.1;
   detail_influence = 5.0;
   cave_scale = 0.05;
   cave_density_threshold = 0.5;
+
+
+  static_body = memnew(StaticBody3D);
+  static_body->set_name("StaticBody");
+  add_child(static_body, true, Node::INTERNAL_MODE_DISABLED);
+
+  collision_shape = memnew(CollisionShape3D);
+  collision_shape->set_name("CollisionShape");
+  static_body->add_child(collision_shape, true, Node::INTERNAL_MODE_DISABLED);
 }
 
 MarchingCubesChunk::~MarchingCubesChunk() {}
 
-void MarchingCubesChunk::_ready() {
+void MarchingCubesChunk::_ready() {}
 
-  Node *sb_node = find_child("StaticBody", false, false);
-
-  if (sb_node) {
-    static_body = Object::cast_to<StaticBody3D>(sb_node);
-  }
-
-  if (!static_body) {
-    static_body = memnew(StaticBody3D);
-    static_body->set_name("StaticBody");
-    add_child(static_body);
-  }
-
-  Node *cs_node = static_body->find_child("CollisionShape", false, false);
-
-  if (cs_node) {
-    collision_shape = Object::cast_to<CollisionShape3D>(cs_node);
-  }
-
-  if (!collision_shape) {
-    collision_shape = memnew(CollisionShape3D);
-    collision_shape->set_name("CollisionShape");
-    static_body->add_child(collision_shape);
-  }
-}
-
-// Sobrecarga o modifica tu calculate_world_density para que acepte Vector3
 double MarchingCubesChunk::calculate_world_density(const Vector3 &world_pos) {
-    // La lógica es la misma, solo que ahora usamos las coordenadas flotantes de world_pos
-    // --- Capa 0: Base de Altura ---
-    double density = -world_pos.y;
+  double density = -world_pos.y;
 
-    // --- Capa 1: Ruido de Terreno Base (Montañas, Valles) ---
-    if (noise_base_terrain.is_valid()) {
-        double base_noise = noise_base_terrain->get_noise_3d(
-            world_pos.x * base_terrain_scale,
-            world_pos.y * base_terrain_scale,
-            world_pos.z * base_terrain_scale
-        );
-        density += base_noise * base_terrain_height_influence;
+  if (noise_base_terrain.is_valid()) {
+    double base_noise = noise_base_terrain->get_noise_3d(
+        world_pos.x * base_terrain_scale, world_pos.y * base_terrain_scale,
+        world_pos.z * base_terrain_scale);
+    density += base_noise * base_terrain_height_influence;
+  }
+
+  if (noise_detail.is_valid()) {
+    double detail_noise = noise_detail->get_noise_3d(
+        world_pos.x * detail_scale, world_pos.y * detail_scale,
+        world_pos.z * detail_scale);
+    density += detail_noise * detail_influence;
+  }
+
+  if (noise_caves.is_valid()) {
+    double cave_noise = noise_caves->get_noise_3d(world_pos.x * cave_scale,
+                                                  world_pos.y * cave_scale,
+                                                  world_pos.z * cave_scale);
+    if (abs(cave_noise) > cave_density_threshold) {
+      density -= 10.0;
     }
+  }
 
-    // --- Capa 2: Ruido de Detalle (Rugosidad) ---
-    if (noise_detail.is_valid()) {
-        double detail_noise = noise_detail->get_noise_3d(
-            world_pos.x * detail_scale,
-            world_pos.y * detail_scale,
-            world_pos.z * detail_scale
-        );
-        density += detail_noise * detail_influence;
-    }
-
-    // --- Capa 3: Ruido de Cuevas (Perforación) ---
-    if (noise_caves.is_valid()) {
-        double cave_noise = noise_caves->get_noise_3d(
-            world_pos.x * cave_scale,
-            world_pos.y * cave_scale,
-            world_pos.z * cave_scale
-        );
-        if (abs(cave_noise) > cave_density_threshold) {
-            density -= 10.0;
-        }
-    }
-
-    return density;
+  return density;
 }
 
 Vector3 MarchingCubesChunk::vertex_interpolate(const Vector3 &p1,
@@ -479,43 +457,34 @@ Vector3 MarchingCubesChunk::vertex_interpolate(const Vector3 &p1,
   return p1.lerp(p2, mu);
 }
 
-// MarchingCubesChunk.cpp
-
-// Añade esta nueva función en alguna parte antes de generate_mesh()
-
 Vector3 MarchingCubesChunk::calculate_vertex_normal(const Vector3 &world_pos) {
-    // Epsilon es una distancia muy pequeña para tomar las muestras.
-    // Si es muy grande, la normal será imprecisa. Si es muy pequeña, puedes tener problemas de precisión de punto flotante.
-    // 0.001 suele ser un buen punto de partida.
-    const double epsilon = 0.001;
+  const double epsilon = 0.001;
 
-    // Calcula la "pendiente" de la densidad a lo largo del eje X.
-    double grad_x = calculate_world_density(world_pos + Vector3(epsilon, 0, 0)) -
-                    calculate_world_density(world_pos - Vector3(epsilon, 0, 0));
+  double grad_x = calculate_world_density(world_pos + Vector3(epsilon, 0, 0)) -
+                  calculate_world_density(world_pos - Vector3(epsilon, 0, 0));
 
-    // Calcula la "pendiente" de la densidad a lo largo del eje Y.
-    double grad_y = calculate_world_density(world_pos + Vector3(0, epsilon, 0)) -
-                    calculate_world_density(world_pos - Vector3(0, epsilon, 0));
+  double grad_y = calculate_world_density(world_pos + Vector3(0, epsilon, 0)) -
+                  calculate_world_density(world_pos - Vector3(0, epsilon, 0));
 
-    // Calcula la "pendiente" de la densidad a lo largo del eje Z.
-    double grad_z = calculate_world_density(world_pos + Vector3(0, 0, epsilon)) -
-                    calculate_world_density(world_pos - Vector3(0, 0, epsilon));
+  double grad_z = calculate_world_density(world_pos + Vector3(0, 0, epsilon)) -
+                  calculate_world_density(world_pos - Vector3(0, 0, epsilon));
 
-    // El vector gradiente es la combinación de estas pendientes.
-    Vector3 gradient = Vector3(grad_x, grad_y, grad_z);
+  Vector3 gradient = Vector3(grad_x, grad_y, grad_z);
 
-    // La normal es simplemente el gradiente normalizado.
-    // Lo negamos porque el gradiente apunta "hacia adentro" del sólido (hacia mayor densidad),
-    // y la normal debe apuntar "hacia afuera".
-    return -gradient.normalized();
+  return -gradient.normalized();
 }
+
 
 void MarchingCubesChunk::generate_mesh() {
   if (noise_base_terrain.is_null() || noise_detail.is_null() ||
       noise_caves.is_null() || chunk_size.x <= 0 || chunk_size.y <= 0 ||
-      chunk_size.z <= 0) {
+      chunk_size.z <= 0 || chunk_size_units.x <= 0 || chunk_size_units.y <= 0 ||
+      chunk_size_units.z <= 0) {
     return;
   }
+
+  const Vector3 voxel_step = chunk_size_units / Vector3(chunk_size);
+  const Vector3 chunk_world_origin = Vector3(chunk_coord) * chunk_size_units;
 
   const Vector3i buffer_size = chunk_size + Vector3i(2, 2, 2);
   std::vector<double> density_buffer(buffer_size.x * buffer_size.y *
@@ -524,14 +493,11 @@ void MarchingCubesChunk::generate_mesh() {
   for (int x = 0; x < buffer_size.x; ++x) {
     for (int y = 0; y < buffer_size.y; ++y) {
       for (int z = 0; z < buffer_size.z; ++z) {
-        Vector3i world_voxel_coord =
-            Vector3i(chunk_coord.x * chunk_size.x + (x - 1),
-                     chunk_coord.y * chunk_size.y + (y - 1),
-                     chunk_coord.z * chunk_size.z + (z - 1));
+        Vector3 world_pos =
+            chunk_world_origin + (Vector3(x - 1, y - 1, z - 1) * voxel_step);
         int buffer_index =
             z * buffer_size.x * buffer_size.y + y * buffer_size.x + x;
-        density_buffer[buffer_index] =
-            calculate_world_density(world_voxel_coord);
+        density_buffer[buffer_index] = calculate_world_density(world_pos);
       }
     }
   }
@@ -542,29 +508,25 @@ void MarchingCubesChunk::generate_mesh() {
   double cell_densities[8];
   Vector3 edge_vertex_positions[12];
 
-  Vector3 chunk_world_pos = Vector3(
-      chunk_coord.x * chunk_size.x,
-      chunk_coord.y * chunk_size.y,
-      chunk_coord.z * chunk_size.z
-  );
-
   for (int x = 0; x < chunk_size.x; ++x) {
     for (int y = 0; y < chunk_size.y; ++y) {
       for (int z = 0; z < chunk_size.z; ++z) {
+
         int cube_index = 0;
         for (int i = 0; i < 8; ++i) {
           Vector3i buffer_pos =
               Vector3i(x, y, z) + CUBE_VERTICES[i] + Vector3i(1, 1, 1);
-          int buffer_index = buffer_pos.z * buffer_size.x * buffer_size.y +
-                             buffer_pos.y * buffer_size.x + buffer_pos.x;
-          cell_densities[i] = density_buffer[buffer_index];
+          int buffer_index_3d = buffer_pos.z * buffer_size.x * buffer_size.y +
+                                buffer_pos.y * buffer_size.x + buffer_pos.x;
+          cell_densities[i] = density_buffer[buffer_index_3d];
           if (cell_densities[i] > isolevel) {
             cube_index |= (1 << i);
           }
         }
 
-        if (cube_index == 0 || cube_index == 0xFF)
+        if (cube_index == 0 || cube_index == 0xFF) {
           continue;
+        }
 
         int edge_mask = edge_table[cube_index];
         for (int i_edge = 0; i_edge < 12; ++i_edge) {
@@ -574,34 +536,40 @@ void MarchingCubesChunk::generate_mesh() {
                 Vector3(Vector3i(x, y, z) + CUBE_VERTICES[edge_indices[0]]);
             Vector3 p2 =
                 Vector3(Vector3i(x, y, z) + CUBE_VERTICES[edge_indices[1]]);
-            edge_vertex_positions[i_edge] =
+
+            Vector3 interpolated_pos =
                 vertex_interpolate(p1, p2, cell_densities[edge_indices[0]],
                                    cell_densities[edge_indices[1]]);
+
+            edge_vertex_positions[i_edge] = interpolated_pos * voxel_step;
           }
         }
 
         for (int i_tri = 0; tri_table[cube_index][i_tri] != -1; i_tri += 3) {
-          Vector3 v1 = edge_vertex_positions[tri_table[cube_index][i_tri]];
-          Vector3 v2 = edge_vertex_positions[tri_table[cube_index][i_tri + 1]];
-          Vector3 v3 = edge_vertex_positions[tri_table[cube_index][i_tri + 2]];
+          Vector3 v1_local =
+              edge_vertex_positions[tri_table[cube_index][i_tri]];
+          Vector3 v2_local =
+              edge_vertex_positions[tri_table[cube_index][i_tri + 1]];
+          Vector3 v3_local =
+              edge_vertex_positions[tri_table[cube_index][i_tri + 2]];
 
-          vertices.push_back(v1);
-          vertices.push_back(v2);
-          vertices.push_back(v3);
+          vertices.push_back(v1_local);
+          vertices.push_back(v2_local);
+          vertices.push_back(v3_local);
 
-          Vector3 n1 = calculate_vertex_normal(chunk_world_pos + v1);
-                    Vector3 n2 = calculate_vertex_normal(chunk_world_pos + v2);
-                    Vector3 n3 = calculate_vertex_normal(chunk_world_pos + v3);
+          Vector3 n1 = calculate_vertex_normal(chunk_world_origin + v1_local);
+          Vector3 n2 = calculate_vertex_normal(chunk_world_origin + v2_local);
+          Vector3 n3 = calculate_vertex_normal(chunk_world_origin + v3_local);
 
-                    normals.push_back(n1);
-                    normals.push_back(n2);
-                    normals.push_back(n3);
+          normals.push_back(n1);
+          normals.push_back(n2);
+          normals.push_back(n3);
         }
       }
     }
   }
 
-  set_mesh(Ref<ArrayMesh>());
+  set_mesh(Ref<ArrayMesh>()); // Limpiar cualquier malla anterior.
 
   if (vertices.size() > 0) {
     Ref<ArrayMesh> mesh = memnew(ArrayMesh);
@@ -611,24 +579,30 @@ void MarchingCubesChunk::generate_mesh() {
     surface_arrays[Mesh::ARRAY_NORMAL] = normals;
 
     mesh->add_surface_from_arrays(Mesh::PRIMITIVE_TRIANGLES, surface_arrays);
-
     set_mesh(mesh);
-  }
 
-  if (!static_body || !collision_shape) {
-    UtilityFunctions::push_error(
-        "MarchingCubesChunk: StaticBody or CollisionShape is null. Cannot set "
-        "collision shape.");
-    return;
-  }
-
-  if (vertices.size() > 0) {
-    Ref<ConcavePolygonShape3D> shape = memnew(ConcavePolygonShape3D);
-    shape->set_faces(vertices);
-    collision_shape->set_shape(shape);
+    if (static_body && collision_shape) {
+      Ref<ConcavePolygonShape3D> shape = memnew(ConcavePolygonShape3D);
+      shape->set_faces(vertices);
+      collision_shape->set_shape(shape);
+    } else {
+      UtilityFunctions::push_error(
+          "MarchingCubesChunk: StaticBody or CollisionShape is null during "
+          "collision setup.");
+    }
   } else {
-    collision_shape->set_shape(Ref<Shape3D>());
+    if (collision_shape) {
+      collision_shape->set_shape(Ref<Shape3D>());
+    }
   }
+}
+
+void MarchingCubesChunk::set_chunk_size_units(const Vector3 &p_size) {
+  chunk_size_units = p_size;
+}
+
+Vector3 MarchingCubesChunk::get_chunk_size_units() const {
+  return chunk_size_units;
 }
 
 void MarchingCubesChunk::set_chunk_size(const Vector3i &p_size) {

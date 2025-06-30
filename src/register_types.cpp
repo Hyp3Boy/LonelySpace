@@ -1,5 +1,6 @@
 #include "register_types.h"
 #include "marching_cubes_chunk.h"
+#include "terrain_manager.h"
 
 #include <gdextension_interface.h>
 #include <godot_cpp/core/class_db.hpp>
@@ -15,6 +16,7 @@ void initialize_example_module(ModuleInitializationLevel p_level) {
 
   // GDREGISTER_RUNTIME_CLASS(MarchingCubesChunk);
   ClassDB::register_class<MarchingCubesChunk>();
+  ClassDB::register_class<TerrainManager>();
 }
 
 void uninitialize_example_module(ModuleInitializationLevel p_level) {
