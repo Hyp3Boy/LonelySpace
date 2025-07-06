@@ -1,80 +1,11 @@
-[gd_scene load_steps=23 format=3 uid="uid://cyfhkop5lmjiy"]
+[gd_scene load_steps=7 format=3 uid="uid://dyon6v1t8uhqk"]
 
-[ext_resource type="Shader" uid="uid://c4438j03ssk87" path="res://Scenes/Sky/stylized_sky.gdshader" id="2_daffl"]
-[ext_resource type="PackedScene" uid="uid://bty0w8iycikj6" path="res://Scenes/Robot/robot.tscn" id="3_xlilg"]
-
-[sub_resource type="ShaderMaterial" id="ShaderMaterial_hclou"]
-
-[sub_resource type="FastNoiseLite" id="FastNoiseLite_hclou"]
-
-[sub_resource type="FastNoiseLite" id="FastNoiseLite_daffl"]
-
-[sub_resource type="FastNoiseLite" id="FastNoiseLite_xlilg"]
-fractal_type = 2
-
-[sub_resource type="CompressedTexture2D" id="CompressedTexture2D_mprg7"]
-load_path = "res://.godot/imported/Sun.png-a7654b2a87fcb7816fba3e1443bd0135.s3tc.ctex"
-
-[sub_resource type="Curve" id="Curve_daffl"]
-_data = [Vector2(0, 0), 0.0, 0.0, 0, 0, Vector2(0.248503, 0.945898), 0.0, 0.0, 0, 0, Vector2(0.38024, 0.265755), 0.0, 0.0, 0, 0, Vector2(0.640719, 1), 0.0, 0.0, 0, 0, Vector2(0.997006, 0.907253), 0.0, 0.0, 0, 0]
-point_count = 5
-
-[sub_resource type="CurveTexture" id="CurveTexture_t24os"]
-curve = SubResource("Curve_daffl")
-
-[sub_resource type="FastNoiseLite" id="FastNoiseLite_k14oj"]
-noise_type = 2
-
-[sub_resource type="NoiseTexture2D" id="NoiseTexture2D_xayyp"]
-seamless = true
-noise = SubResource("FastNoiseLite_k14oj")
-
-[sub_resource type="FastNoiseLite" id="FastNoiseLite_ed7hi"]
-noise_type = 2
-
-[sub_resource type="NoiseTexture2D" id="NoiseTexture2D_17cpo"]
-seamless = true
-noise = SubResource("FastNoiseLite_ed7hi")
-
-[sub_resource type="FastNoiseLite" id="FastNoiseLite_d6223"]
-
-[sub_resource type="NoiseTexture2D" id="NoiseTexture2D_k14tu"]
-seamless = true
-noise = SubResource("FastNoiseLite_d6223")
-
-[sub_resource type="CompressedTexture2D" id="CompressedTexture2D_ytlth"]
-load_path = "res://.godot/imported/shooting_star_sampler.png-ee18fb87a34b69164023befad001b040.s3tc.ctex"
-
-[sub_resource type="ShaderMaterial" id="ShaderMaterial_e7gcc"]
-shader = ExtResource("2_daffl")
-shader_parameter/cloud_shape_sampler = SubResource("NoiseTexture2D_17cpo")
-shader_parameter/cloud_noise_sampler = SubResource("NoiseTexture2D_xayyp")
-shader_parameter/cloud_curves = SubResource("CurveTexture_t24os")
-shader_parameter/clouds_samples = 32
-shader_parameter/shadow_sample = 4
-shader_parameter/clouds_density = 0.4
-shader_parameter/clouds_scale = 1.0
-shader_parameter/clouds_smoothness = 0.05
-shader_parameter/clouds_light_color = Color(0.569488, 0.125506, 0.868344, 1)
-shader_parameter/clouds_shadow_intensity = 4.0
-shader_parameter/high_clouds_sampler = SubResource("NoiseTexture2D_k14tu")
-shader_parameter/high_clouds_density = 0.1
-shader_parameter/top_color = Color(0.027451, 0.101961, 0.25098, 1)
-shader_parameter/bottom_color = Color(0.027451, 0.101961, 0.25098, 1)
-shader_parameter/sun_scatter = Color(0.150848, 0.0959969, 0.208184, 1)
-shader_parameter/astro_tint = Color(1, 1, 1, 1)
-shader_parameter/astro_sampler = SubResource("CompressedTexture2D_mprg7")
-shader_parameter/astro_scale = 6.5
-shader_parameter/astro_intensity = 3.0
-shader_parameter/stars_intensity = 1.5
-shader_parameter/shooting_stars_intensity = 0.0
-shader_parameter/shooting_star_sampler = SubResource("CompressedTexture2D_ytlth")
-shader_parameter/shooting_star_tint = Color(1, 0.65098, 0.607843, 1)
+[ext_resource type="Material" uid="uid://c0eer80e11ek6" path="res://Scenes/Sky/Cycle.tres" id="1_mprg7"]
 
 [sub_resource type="Sky" id="Sky_5j4rr"]
-sky_material = SubResource("ShaderMaterial_e7gcc")
+sky_material = ExtResource("1_mprg7")
 
-[sub_resource type="Environment" id="Environment_e0r0o"]
+[sub_resource type="Environment" id="Environment_mqx5w"]
 background_mode = 2
 sky = SubResource("Sky_5j4rr")
 tonemap_mode = 2
@@ -336,25 +267,13 @@ _data = {
 &"RESET": SubResource("Animation_1ic0h")
 }
 
-[node name="Main World" type="Node3D"]
-
-[node name="robot" parent="." instance=ExtResource("3_xlilg")]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 20, 0)
-
-[node name="TerrainManager" type="TerrainManager" parent="."]
-player_node_path = NodePath("../robot")
-terrain_material = SubResource("ShaderMaterial_hclou")
-chunk_size_units = Vector3(32, 32, 32)
-noise_base_terrain = SubResource("FastNoiseLite_hclou")
-noise_detail = SubResource("FastNoiseLite_daffl")
-noise_caves = SubResource("FastNoiseLite_xlilg")
-base_terrain_scale = 1.0
+[node name="Node3D" type="Node3D"]
 
 [node name="WorldEnvironment" type="WorldEnvironment" parent="."]
-environment = SubResource("Environment_e0r0o")
+environment = SubResource("Environment_mqx5w")
 
 [node name="DirectionalLight3D" type="DirectionalLight3D" parent="."]
-transform = Transform3D(0.160532, -0.67626, -0.718959, -0.164267, -0.736552, 0.65613, -0.973266, 0.0127712, -0.229327, 0, 0, 0)
+transform = Transform3D(-0.02173, -0.999094, 0.0365831, 0.683877, 0.0118375, 0.729501, -0.729273, 0.0408705, 0.683001, 0, 0, 0)
 light_energy = 0.2
 shadow_enabled = true
 
