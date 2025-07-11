@@ -1,12 +1,12 @@
+Node3D
 Node
+RayCast3D
+Camera3D
+CollisionShape3D
+CharacterBody3D
 AnimationPlayer
 TerrainManager
 DirectionalLight3D
 OmniLight3D
 WorldEnvironment
-Node3D
-RayCast3D
-Camera3D
 MeshInstance3D
-CollisionShape3D
-CharacterBody3D

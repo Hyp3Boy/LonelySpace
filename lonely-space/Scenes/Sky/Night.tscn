@@ -1,7 +1,7 @@
 [gd_scene load_steps=15 format=3 uid="uid://bx4ul0wv8irap"]
 
 [ext_resource type="Shader" uid="uid://c4438j03ssk87" path="res://Scenes/Sky/stylized_sky.gdshader" id="1_xyt76"]
-[ext_resource type="Texture2D" uid="uid://drueusj3qx6ab" path="res://Scenes/Sky/shooting_star_sampler.png" id="2_d0ke2"]
+[ext_resource type="Texture2D" uid="uid://cdhvlko5bsusc" path="res://Scenes/Sky/shooting_star_sampler.png" id="2_d0ke2"]
 
 [sub_resource type="CompressedTexture2D" id="CompressedTexture2D_xyt76"]
 load_path = "res://.godot/imported/Sun.png-a7654b2a87fcb7816fba3e1443bd0135.s3tc.ctex"
