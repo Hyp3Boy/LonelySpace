@@ -1,7 +1,7 @@
 [gd_resource type="ShaderMaterial" load_steps=9 format=3 uid="uid://dgkb32ymuhesy"]
 
 [ext_resource type="Shader" uid="uid://c4438j03ssk87" path="res://Scenes/Sky/stylized_sky.gdshader" id="1_limit"]
-[ext_resource type="Texture2D" uid="uid://bq818hyddr7ef" path="res://Scenes/Sky/Sun.png" id="2_2p38n"]
+[ext_resource type="Texture2D" uid="uid://cyf1a0ohvxuvr" path="res://Scenes/Sky/Sun.png" id="2_2p38n"]
 
 [sub_resource type="Curve" id="Curve_61ji2"]
 _data = [Vector2(0, 0), 0.0, 0.0, 0, 0, Vector2(0.248503, 0.945898), 0.0, 0.0, 0, 0, Vector2(0.38024, 0.265755), 0.0, 0.0, 0, 0, Vector2(0.640719, 1), 0.0, 0.0, 0, 0, Vector2(0.997006, 0.907253), 0.0, 0.0, 0, 0]

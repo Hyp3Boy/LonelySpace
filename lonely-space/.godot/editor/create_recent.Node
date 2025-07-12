@@ -1,3 +1,5 @@
+Control
+SpotLight3D
 Marker3D
 Button
 HBoxContainer
@@ -9,7 +11,15 @@ Control
 TextureButton
 PanelContainer
 Node
+AnimationPlayer
 RayCast3D
 Camera3D
 Node3D
 CollisionShape3D
+CharacterBody3D
+AnimationPlayer
+TerrainManager
+DirectionalLight3D
+OmniLight3D
+WorldEnvironment
+MeshInstance3D

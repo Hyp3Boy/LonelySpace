@@ -1,5 +1,8 @@
 extends CharacterBody3D
-
+# lintern  
+# Cambia $SpotLight3D por la ruta correcta si lo pusiste en otro lugar.
+@onready var linterna = $CameraController/CameraTarget/SpotLight3D
+	
 
 const SPEED = 5.0
 const JUMP_VELOCITY = 8
@@ -7,6 +10,7 @@ const JUMP_VELOCITY = 8
 var was_on_floor := true
 
 var xform: Transform3D
+
 
 
 func _physics_process(delta: float) -> void:
@@ -105,3 +109,8 @@ func align_with_floor(floor_normal) -> void:
 	xform.basis.x = -xform.basis.z.cross(floor_normal)
 	xform.basis = xform.basis.orthonormalized()
 	
+# Esta función recibe un valor booleano (true o false) para encender/apagar.
+func activar_linterna(activar: bool):
+	linterna.visible = activar
+	# Este print es opcional, pero muy útil para saber si la función se está llamando.
+	print("Linterna ha sido ", "encendida" if activar else "apagada")

@@ -2,10 +2,7 @@
 extends Node
 
 # Botón para activar la carga en el Inspector
-@export var _load_animations_button: bool = false:
-	set(value):
-		if value:
-			load_animations_into_player()
+
 
 func load_animations_into_player():
 	var parent = get_parent()
