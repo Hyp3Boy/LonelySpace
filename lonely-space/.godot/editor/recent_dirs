@@ -1,6 +1,8 @@
-res://Assets/Models/Animations
-res://Scenes/Robot
-res://Scenes/Sky
-res://Scenes/World
 res://Scenes
+res://Scenes/World
+res://scripts
+res://Assets/Models/Animations2
+res://Scenes/Robot
+res://Assets/Models/Animations
+res://Scenes/Sky
 res://

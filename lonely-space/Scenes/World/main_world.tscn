@@ -1,5 +1,6 @@
-[gd_scene load_steps=24 format=3 uid="uid://cyfhkop5lmjiy"]
+[gd_scene load_steps=25 format=3 uid="uid://cyfhkop5lmjiy"]
 
+[ext_resource type="Script" uid="uid://bon40otbn5of" path="res://scripts/main_world.gd" id="1_k14oj"]
 [ext_resource type="Shader" uid="uid://c4438j03ssk87" path="res://Scenes/Sky/stylized_sky.gdshader" id="2_daffl"]
 [ext_resource type="PackedScene" uid="uid://hrxm52osao8v" path="res://Scenes/Robot/mixamo_player.tscn" id="3_k14oj"]
 [ext_resource type="PackedScene" uid="uid://bty0w8iycikj6" path="res://Scenes/Robot/robot.tscn" id="3_xlilg"]
@@ -338,6 +339,7 @@ _data = {
 }
 
 [node name="Main World" type="Node3D"]
+script = ExtResource("1_k14oj")
 
 [node name="robot_desactivado" parent="." instance=ExtResource("3_xlilg")]
 process_mode = 4
@@ -379,12 +381,20 @@ libraries = {
 }
 autoplay = "Cycle"
 
-[node name="robot" parent="." instance=ExtResource("3_k14oj")]
+[node name="robot_desactivado2" parent="." instance=ExtResource("3_k14oj")]
+process_mode = 4
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 20, 0)
+visible = false
 
-[node name="CameraController" parent="robot" index="2"]
+[node name="CollisionShape3D" parent="robot_desactivado2" index="1"]
+process_mode = 4
+
+[node name="CameraController" parent="robot_desactivado2" index="2"]
 transform = Transform3D(-1, 0, -8.74228e-08, 0, 1, 0, 8.74228e-08, 0, -1, 0, 20, 0)
 
+[node name="SpawnPoint" type="Marker3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 20, 0)
+
 [editable path="robot_desactivado"]
-[editable path="robot"]
-[editable path="robot/Ch19_nonPBR"]
+[editable path="robot_desactivado2"]
+[editable path="robot_desactivado2/Ch19_nonPBR"]

@@ -11,9 +11,13 @@ config_version=5
 [application]
 
 config/name="Lonely Space"
-run/main_scene="uid://cyfhkop5lmjiy"
+run/main_scene="uid://7wboenlx2sag"
 config/features=PackedStringArray("4.4", "Forward Plus")
 config/icon="res://icon.svg"
+
+[autoload]
+
+CharacterManager="*res://scripts/CharacterManager.gd"
 
 [editor_plugins]
 
