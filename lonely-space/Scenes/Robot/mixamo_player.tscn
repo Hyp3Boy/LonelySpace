@@ -1,7 +1,7 @@
 [gd_scene load_steps=15 format=3 uid="uid://hrxm52osao8v"]
 
 [ext_resource type="Script" uid="uid://e3uav4daqolt" path="res://Scenes/Robot/mixamo_player_controller.gd" id="1_j1j13"]
-[ext_resource type="PackedScene" uid="uid://bwwx4sjyatb5j" path="res://Assets/Models/ch1/Ch19_nonPBR.fbx" id="1_v2ufx"]
+[ext_resource type="PackedScene" uid="uid://d4h4rbgy238b2" path="res://Assets/Models/ch1/Ch19_nonPBR.fbx" id="1_v2ufx"]
 [ext_resource type="Script" uid="uid://b8i04hc857sjd" path="res://scripts/AnimationLoader.gd" id="3_ffhal"]
 [ext_resource type="Animation" uid="uid://dadmyim0pqxyc" path="res://Assets/Models/Animations/idle.res" id="3_t22j4"]
 [ext_resource type="Animation" uid="uid://b5xo2xoekpt4r" path="res://Assets/Models/Animations/run.res" id="4_t22j4"]

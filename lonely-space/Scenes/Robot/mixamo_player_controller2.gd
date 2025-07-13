@@ -1,13 +1,28 @@
 extends CharacterBody3D
 
 
+# lintern  
+@onready var linterna = $CameraController/CameraTarget/SpotLight3D
+var world_animation_player: AnimationPlayer = null
+# Esta variable es para evitar encender/apagar la linterna en cada fotograma
+var linterna_esta_encendida: bool = false
+
 const SPEED = 5.0
 const JUMP_VELOCITY = 8
 
 var was_on_floor := true
 
 var xform: Transform3D
+func _ready():
+	# Buscamos el nodo AnimationPlayer en la escena principal.
+	# Asumimos que la escena principal tiene un AnimationPlayer con ese nombre.
+	# get_tree().get_root() nos da acceso a la raíz de la escena actual.
+	world_animation_player = get_tree().get_root().find_child("WorldTime_AnimationPlayer", true, false)
 
+	if world_animation_player and world_animation_player.is_playing():
+		print("El AnimationPlayer encontrado y reproduciendo es: ", world_animation_player.get_path())
+	else:
+		print("¡ADVERTENCIA! No se encontró ningún AnimationPlayer.")
 
 func _physics_process(delta: float) -> void:
 	# Get the input direction and handle the movement/deceleration.
@@ -66,6 +81,21 @@ func _physics_process(delta: float) -> void:
 	else:
 		velocity.x = move_toward(velocity.x, 0, SPEED)
 		velocity.z = move_toward(velocity.z, 0, SPEED)
+	
+# --- LÓGICA DE LA LINTERNA BASADA EN EL TIEMPO DEL MUNDO ---
+	if world_animation_player and world_animation_player.is_playing():
+		var tiempo_actual = world_animation_player.current_animation_position
+		var deberia_estar_encendida = (tiempo_actual >= 175.0 and tiempo_actual < 273.5)
+
+		# Usamos la visibilidad actual de la linterna para saber su estado.
+		if deberia_estar_encendida and not linterna.visible:
+			linterna.visible = true
+			print("Linterna ENCENDIDA por tiempo.")
+		elif not deberia_estar_encendida and linterna.visible:
+			linterna.visible = false
+			print("Linterna APAGADA por tiempo.")
+	else:
+		print("La animacion no se reproduce")
 		
 	move_and_slide()
 	
@@ -104,4 +134,8 @@ func align_with_floor(floor_normal) -> void:
 	xform.basis.y = floor_normal
 	xform.basis.x = -xform.basis.z.cross(floor_normal)
 	xform.basis = xform.basis.orthonormalized()
+
+func activar_linterna(activar: bool):
+	linterna.visible = activar
+	print("Linterna ha sido ", "encendida" if activar else "apagada")
 	
