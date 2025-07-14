@@ -8,6 +8,7 @@
 namespace godot {
 
 void TerrainManager::_bind_methods() {
+    ClassDB::bind_method(D_METHOD("assign_player_by_path", "p_path"), &TerrainManager::assign_player_by_path);
   ClassDB::bind_method(D_METHOD("set_player_node_path", "p_path"),
                        &TerrainManager::set_player_node_path);
   ClassDB::bind_method(D_METHOD("get_player_node_path"),
@@ -148,19 +149,45 @@ TerrainManager::TerrainManager() {
 
 TerrainManager::~TerrainManager() { _stop_thread_pool(); }
 
-void TerrainManager::_ready() {
-  if (Engine::get_singleton()->is_editor_hint())
-    return;
 
-  player = Object::cast_to<Node3D>(get_node_or_null(player_node_path));
-  if (!player) {
-    UtilityFunctions::push_error(
-        "TerrainManager: Player node not found or is not a Node3D.");
-    set_process(false);
+// En terrain_manager.cpp
+void TerrainManager::_ready() {
+  if (Engine::get_singleton()->is_editor_hint()) {
     return;
   }
-  _start_thread_pool();
-  _update_chunks_visibility();
+
+  // Comprueba si el jugador ya fue asignado en el editor (para pruebas rápidas)
+  if (!player_node_path.is_empty()) {
+    player = Object::cast_to<Node3D>(get_node_or_null(player_node_path));
+  }
+
+  // Si encontramos un jugador, empezamos.
+  if (player) {
+    _start_thread_pool();
+    _update_chunks_visibility();
+  } else {
+    // Si no, esperamos a que se asigne por código. Desactivamos el _process para no hacer nada.
+    UtilityFunctions::print("TerrainManager: Player not found on ready. Waiting for dynamic assignment...");
+    set_process(false);
+  }
+}
+
+// En terrain_manager.cpp
+
+void TerrainManager::assign_player_by_path(const NodePath &p_path) {
+    set_player_node_path(p_path);
+    player = Object::cast_to<Node3D>(get_node_or_null(player_node_path));
+
+    if (!player) {
+        UtilityFunctions::push_error("TerrainManager: assign_player_by_path was called, but node was not found at path: ", p_path);
+        return;
+    }
+
+    // Como el jugador ya fue asignado, ahora sí podemos empezar a procesar y generar.
+    UtilityFunctions::print("TerrainManager: Player assigned via code. Starting terrain generation.");
+    set_process(true); // Reactivamos el _process
+    _start_thread_pool();
+    _update_chunks_visibility(); // Disparamos la primera actualización de chunks
 }
 
 void TerrainManager::_process(double delta) {

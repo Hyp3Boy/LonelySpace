@@ -80,6 +80,7 @@ public:
     void _ready() override;
     void _process(double delta) override;
     void _notification(int p_what);
+    void assign_player_by_path(const NodePath& p_path);
 
     void set_player_node_path(const NodePath& p_path);
     NodePath get_player_node_path() const;

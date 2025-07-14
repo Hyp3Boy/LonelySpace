@@ -1,9 +1,11 @@
-[gd_scene load_steps=14 format=3 uid="uid://cyfhkop5lmjiy"]
+[gd_scene load_steps=20 format=3 uid="uid://cyfhkop5lmjiy"]
 
 [ext_resource type="Script" uid="uid://bon40otbn5of" path="res://scripts/main_world.gd" id="1_k14oj"]
 [ext_resource type="PackedScene" uid="uid://hrxm52osao8v" path="res://Scenes/Robot/mixamo_player.tscn" id="3_k14oj"]
 [ext_resource type="PackedScene" uid="uid://bty0w8iycikj6" path="res://Scenes/Robot/robot.tscn" id="3_xlilg"]
 [ext_resource type="Material" uid="uid://buft6dokuneiw" path="res://Scenes/Sky/Cycle.tres" id="4_k14oj"]
+[ext_resource type="Shader" uid="uid://b8rdl2xa4mn28" path="res://Scenes/World/water.gdshader" id="5_ed7hi"]
+[ext_resource type="PackedScene" uid="uid://1h3bkfm041eh" path="res://Scenes/PauseMenu.tscn" id="6_d6223"]
 
 [sub_resource type="ShaderMaterial" id="ShaderMaterial_hclou"]
 
@@ -377,6 +379,25 @@ _data = {
 &"RESET": SubResource("Animation_pmabw")
 }
 
+[sub_resource type="PlaneMesh" id="PlaneMesh_d6223"]
+size = Vector2(10000, 10000)
+
+[sub_resource type="FastNoiseLite" id="FastNoiseLite_ed7hi"]
+
+[sub_resource type="NoiseTexture2D" id="NoiseTexture2D_d6223"]
+seamless = true
+noise = SubResource("FastNoiseLite_ed7hi")
+
+[sub_resource type="ShaderMaterial" id="ShaderMaterial_e7gcc"]
+render_priority = 0
+shader = ExtResource("5_ed7hi")
+shader_parameter/water_color = Color(0.1, 0.4, 0.6, 0.7)
+shader_parameter/underwater_color = Color(0.05, 0.25, 0.4, 0.92)
+shader_parameter/noise_texture = SubResource("NoiseTexture2D_d6223")
+shader_parameter/wave_speed = 0.05
+shader_parameter/wave_strength = 0.08
+shader_parameter/wave_direction = Vector2(1, 0.5)
+
 [node name="Main World" type="Node3D"]
 script = ExtResource("1_k14oj")
 
@@ -398,7 +419,6 @@ process_mode = 4
 process_mode = 4
 
 [node name="TerrainManager" type="TerrainManager" parent="."]
-player_node_path = NodePath("../robot_desactivado")
 terrain_material = SubResource("ShaderMaterial_hclou")
 chunk_size_units = Vector3(32, 32, 32)
 noise_base_terrain = SubResource("FastNoiseLite_hclou")
@@ -431,6 +451,13 @@ libraries = {
 &"": SubResource("AnimationLibrary_rru81")
 }
 autoplay = "Cycle_v2"
+
+[node name="MeshInstance3D" type="MeshInstance3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, -30, 0)
+mesh = SubResource("PlaneMesh_d6223")
+surface_material_override/0 = SubResource("ShaderMaterial_e7gcc")
+
+[node name="PauseMenu" parent="." instance=ExtResource("6_d6223")]
 
 [editable path="robot_desactivado"]
 [editable path="robot_desactivado2"]
