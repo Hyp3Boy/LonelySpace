@@ -40,7 +40,8 @@ Antes de empezar, asegúrate de tener instalado el siguiente software en tu sist
         ```bash
         sudo apt-get update && sudo apt-get install build-essential
         ```
-4.  **Godot Engine 4.4:** Descarga la versión estándar (no la de .NET) desde la [página oficial de Godot](https://godotengine.org/download/).
+4.  **Godot Engine 4.4:** Descarga la versión estándar (no la de .NET) desde la [página oficial de Godot](https://godotengine.org/download/) (Recomendación: Si se usa en un entorno arch-linux, usar el appimage de Godot en lugar de intentar instalar la versión disponible para su distro, en caso contrario se tendrá problemas con la generación del mesh principal del mundo por diferencias en las operaciones en punto flotante.) 
+
 
 ## 🚀 Cómo Empezar
 
@@ -77,7 +78,8 @@ Este comando buscará el archivo `SConstruct`, compilará el código C++ de la c
 1.  Abre el ejecutable de **Godot Engine 4.4**.
 2.  En el gestor de proyectos, haz clic en **"Importar"**.
 3.  Navega hasta la carpeta del proyecto clonado y selecciona el archivo `lonely-space/project.godot`.
-4.  Una vez que el proyecto se abra en el editor de Godot, simplemente presiona el **botón de Play** (o `F5`) para ejecutar la escena principal.
+4.  Una vez que el proyecto se abra en el editor de Godot, selecciona la escena `res://Scenes/selection_screen.tscn`. 
+5.  Una vez abierta la escena `selection_screen.tscn` haz click en el \textbf{botón de Play} (o presiona \texttt{F5}, incluso se recomienda ejecutar con \texttt{F6} para correr la escena en su modo de depuración) para ejecutar la escena principal.
 
 ¡Y eso es todo! Deberías ver el terreno generándose a tu alrededor.
 
