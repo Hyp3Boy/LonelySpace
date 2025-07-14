@@ -1,141 +1,125 @@
 extends CharacterBody3D
 
-
-# lintern  
+# --- Variables de Linterna y Mundo ---
 @onready var linterna = $CameraController/CameraTarget/SpotLight3D
 var world_animation_player: AnimationPlayer = null
-# Esta variable es para evitar encender/apagar la linterna en cada fotograma
 var linterna_esta_encendida: bool = false
 
+# --- Variables de Movimiento y Cámara ---
 const SPEED = 5.0
-const JUMP_VELOCITY = 8
+const JUMP_VELOCITY = 8.0
+const MOUSE_SENSITIVITY = 0.002 # Sensibilidad del ratón
 
+# NUEVO: Límites para la rotación vertical de la cámara (en radianes)
+const MIN_PITCH = deg_to_rad(-70.0)
+const MAX_PITCH = deg_to_rad(70.0)
+
+# NUEVO: Velocidad a la que el personaje gira para mirar en la dirección de movimiento
+const TURN_SPEED = 10.0
+
+# --- Variables de Estado ---
 var was_on_floor := true
-
 var xform: Transform3D
-func _ready():
-	# Buscamos el nodo AnimationPlayer en la escena principal.
-	# Asumimos que la escena principal tiene un AnimationPlayer con ese nombre.
-	# get_tree().get_root() nos da acceso a la raíz de la escena actual.
-	world_animation_player = get_tree().get_root().find_child("WorldTime_AnimationPlayer", true, false)
 
+# --- Referencias a Nodos ---
+# NUEVO: Guardamos una referencia al pivote de la cámara para no buscarlo cada fotograma
+@onready var camera_pivot = $CameraController/CameraTarget
+
+
+func _ready():
+	world_animation_player = get_tree().get_root().find_child("WorldTime_AnimationPlayer", true, false)
 	if world_animation_player and world_animation_player.is_playing():
 		print("El AnimationPlayer encontrado y reproduciendo es: ", world_animation_player.get_path())
 	else:
 		print("¡ADVERTENCIA! No se encontró ningún AnimationPlayer.")
+		
+	# Capturar el cursor del mouse para control de cámara
+	Input.set_mouse_mode(Input.MOUSE_MODE_CAPTURED)
 
+# NUEVO: Toda la lógica de la cámara se mueve a _unhandled_input para más fluidez
+func _unhandled_input(event: InputEvent) -> void:
+	if event is InputEventMouseMotion:
+		# Rotación Horizontal (Yaw): Rota el CameraController completo para que el personaje sepa "hacia adelante"
+		$CameraController.rotate_y(-event.relative.x * MOUSE_SENSITIVITY)
+		
+		# Rotación Vertical (Pitch): Rota solo el pivote de la cámara para mirar arriba/abajo
+		camera_pivot.rotate_x(-event.relative.y * MOUSE_SENSITIVITY)
+		
+		# Limitar la rotación vertical para que no de la vuelta completa
+		camera_pivot.rotation.x = clamp(camera_pivot.rotation.x, MIN_PITCH, MAX_PITCH)
+		
 func _physics_process(delta: float) -> void:
-	# Get the input direction and handle the movement/deceleration.
-	# As good practice, you should replace UI actions with custom gameplay actions.
-	var input_dir := Input.get_vector("ui_left", "ui_right", "ui_up", "ui_down")
+	# MODIFICADO: Usamos las nuevas acciones de input para WASD
+	var input_dir := Input.get_vector("move_left", "move_right", "move_forward", "move_backward")
 	
-	#Play animation:
-	#if Input.is_action_just_pressed("ui_accept") and is_on_floor():
-	#	$Ch19_nonPBR/AnimationPlayer.play("movimiento/jump")
-	#elif is_on_floor() and input_dir!= Vector2.ZERO:
-	#	$Ch19_nonPBR/AnimationPlayer.play("movimiento/run")
-	#elif is_on_floor() and input_dir==Vector2.ZERO:
-	#	$Ch19_nonPBR/AnimationPlayer.play("movimiento/idle")
-	
-	# Rotate camera left and right
-	
-	if Input.is_action_just_pressed("cam_left"):
-		$CameraController.rotate_y(deg_to_rad(-30))
-	if Input.is_action_just_pressed("cam_right"):
-		$CameraController.rotate_y(deg_to_rad(30))
-	
-	# Add the gravity.
+	# --- Gravedad ---
 	if not is_on_floor():
 		velocity += get_gravity() * delta
 
-	# Handle jump.
+	# --- Salto ---
 	if Input.is_action_just_pressed("ui_accept") and is_on_floor():
 		velocity.y = JUMP_VELOCITY
 		$"Ch14_nonPBR/AnimationPlayer".play("movimiento/jump_start")
 
-
-	
-	#new vector3 direction taking into account the user arrow input and the camera rotation
+	# --- Dirección de Movimiento ---
+	# Calcula la dirección del movimiento en el espacio del mundo, basada en la orientación de la cámara
 	var direction = ($CameraController.transform.basis * Vector3(input_dir.x, 0, input_dir.y)).normalized()
 	
-	# Rotate the character mesh so is orientend in the direction we move
+	# MODIFICADO: Lógica de rotación del personaje
+	if direction != Vector3.ZERO:
+		# Hacemos que el personaje mire suavemente en la dirección a la que se mueve
+		var target_basis = Basis.looking_at(-direction, Vector3.UP)
+		$Ch14_nonPBR.basis = $Ch14_nonPBR.basis.slerp(target_basis, delta * TURN_SPEED)
 	
-	if input_dir != Vector2.ZERO:
-		$Ch14_nonPBR.rotation_degrees.y = $CameraController.rotation_degrees.y - rad_to_deg(input_dir.angle()) + 90
-		
-	#rotate the character to align floor normal vector 
+	# --- Alineación con el Suelo ---
 	if is_on_floor():
-		align_with_floor(Vector3.UP); # EXPLAIN
-		$RayCast3D.global_transform = xform; #  EXPLAIN
-		align_with_floor($RayCast3D.get_collision_normal());
-		global_transform = global_transform.interpolate_with(xform,0.15)
-	elif not is_on_floor():
-		align_with_floor(Vector3.UP);
-		global_transform = global_transform.interpolate_with(xform,0.15)
+		align_with_floor(Vector3.UP)
+		$RayCast3D.global_transform = xform
+		align_with_floor($RayCast3D.get_collision_normal())
+		global_transform = global_transform.interpolate_with(xform, 0.15)
+	else:
+		align_with_floor(Vector3.UP)
+		global_transform = global_transform.interpolate_with(xform, 0.15)
 	
-	#UPDATE VELOCITY AND MOVE
-	
+	# --- Actualizar Velocidad y Mover ---
 	if direction:
 		velocity.x = direction.x * SPEED
 		velocity.z = direction.z * SPEED
 	else:
 		velocity.x = move_toward(velocity.x, 0, SPEED)
 		velocity.z = move_toward(velocity.z, 0, SPEED)
-	
-# --- LÓGICA DE LA LINTERNA BASADA EN EL TIEMPO DEL MUNDO ---
+		
+	move_and_slide()
+		
+	# --- Lógica de la Linterna (sin cambios) ---
 	if world_animation_player and world_animation_player.is_playing():
 		var tiempo_actual = world_animation_player.current_animation_position
 		var deberia_estar_encendida = (tiempo_actual >= 175.0 and tiempo_actual < 273.5)
-
-		# Usamos la visibilidad actual de la linterna para saber su estado.
 		if deberia_estar_encendida and not linterna.visible:
 			linterna.visible = true
-			print("Linterna ENCENDIDA por tiempo.")
 		elif not deberia_estar_encendida and linterna.visible:
 			linterna.visible = false
-			print("Linterna APAGADA por tiempo.")
-	else:
-		print("La animacion no se reproduce")
-		
-	move_and_slide()
 	
-	# --- NUEVA LÓGICA DE ANIMACIÓN ---
+	# --- Lógica de Animación (sin cambios) ---
 	var anim_player = $"Ch14_nonPBR/AnimationPlayer"
-
-	# 1. Lógica de Aterrizaje
-	# Si estamos en el suelo AHORA, pero NO lo estábamos ANTES, significa que acabamos de aterrizar.
 	if is_on_floor() and not was_on_floor:
 		anim_player.play("movimiento/jump_land")
-
-	# 2. Lógica de Suelo (Correr y Reposo)
-	# Solo se ejecuta si estamos en el suelo y no estamos en medio de la animación de aterrizaje.
 	if is_on_floor() and not anim_player.current_animation == "movimiento/jump_land":
 		if input_dir != Vector2.ZERO:
 			anim_player.play("movimiento/run")
 		else:
 			anim_player.play("movimiento/idle")
-			
-	# 3. Lógica de Aire (Bucle de Caída)
-	# Si no estamos en el suelo...
 	elif not is_on_floor():
-		# ...y no estamos ya en la animación de despegue o en el bucle de caída,
-		# reproducimos el bucle de caída. Esto evita cortar la animación de despegue.
 		if not ["movimiento/jump_start", "movimiento/jump_loop"].has(anim_player.current_animation):
 			anim_player.play("movimiento/jump_loop")
-
-	# Al final de la función, actualizamos el estado para el próximo fotograma.
 	was_on_floor = is_on_floor()
 	
-	# Make camera controller match position of the character	
-	$CameraController.position = lerp($CameraController.position, position,0.15);
+	# --- Seguimiento de la Cámara ---
+	$CameraController.position = lerp($CameraController.position, position, 0.15)
 
+# --- Función de Alineación con el Suelo (sin cambios) ---
 func align_with_floor(floor_normal) -> void:
 	xform = global_transform
 	xform.basis.y = floor_normal
 	xform.basis.x = -xform.basis.z.cross(floor_normal)
 	xform.basis = xform.basis.orthonormalized()
-
-func activar_linterna(activar: bool):
-	linterna.visible = activar
-	print("Linterna ha sido ", "encendida" if activar else "apagada")
-	
